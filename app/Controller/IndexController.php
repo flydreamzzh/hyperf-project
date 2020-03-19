@@ -12,7 +12,18 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-class IndexController extends AbstractController
+use App\Core\BaseController;
+use App\Core\Components\Log;
+use App\Model\User;
+use Hyperf\DbConnection\Db;
+use Hyperf\HttpServer\Annotation\AutoController;
+
+/**
+ * Class IndexController
+ * @package App\Controller
+ * @AutoController()
+ */
+class IndexController extends BaseController
 {
     public function index()
     {
@@ -24,4 +35,14 @@ class IndexController extends AbstractController
             'message' => "Hello {$user}.",
         ];
     }
+
+    /**
+     * @return \Psr\Http\Message\ResponseInterface
+     */
+    public function test()
+    {
+        $user = User::findOne([['id', '>', 2], ['username', 'like' , 'qq%']]);
+        return $this->success('ok', $user->toArray());
+    }
+
 }

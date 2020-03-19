@@ -12,20 +12,72 @@ declare(strict_types=1);
 
 return [
     'default' => [
-        'handler' => [
-            'class' => Monolog\Handler\StreamHandler::class,
-            'constructor' => [
-                'stream' => BASE_PATH . '/runtime/logs/hyperf.log',
-                'level' => Monolog\Logger::DEBUG,
+        'handlers' => [
+            //info、waring、notice日志等
+            [
+                'class' => App\Core\Handler\LogFileHandler::class,
+                'constructor' => [
+                    'stream' => BASE_PATH . '/runtime/logs/info/[datetime].log',
+                    'level' => Monolog\Logger::INFO,
+                ],
+                'formatter' => [
+                    'class' => \App\Core\Formatter\LineFormatter::class,
+                    'constructor' => [
+                        'format' => null,
+                        'dateFormat' => null,
+                        'allowInlineLineBreaks' => true,
+                    ],
+                ]
             ],
-        ],
-        'formatter' => [
-            'class' => Monolog\Formatter\LineFormatter::class,
-            'constructor' => [
-                'format' => null,
-                'dateFormat' => null,
-                'allowInlineLineBreaks' => true,
+            //数据库语句
+            [
+                'class' => App\Core\Handler\LogFileHandler::class,
+                'constructor' => [
+                    'stream' => BASE_PATH . '/runtime/logs/sql/[datetime].log',
+                    'level' => Monolog\Logger::INFO,
+                    'channel' => 'sql'
+                ],
+                'formatter' => [
+                    'class' => \App\Core\Formatter\LineFormatter::class,
+                    'constructor' => [
+                        'format' => null,
+                        'dateFormat' => null,
+                        'allowInlineLineBreaks' => true,
+                    ],
+                ]
             ],
-        ],
-    ],
+            // debug日志
+            [
+                'class' => App\Core\Handler\LogFileHandler::class,
+                'constructor' => [
+                    'stream' => BASE_PATH . '/runtime/logs/debug/[datetime].log',
+                    'level' => Monolog\Logger::DEBUG,
+                ],
+                'formatter' => [
+                    'class' => \App\Core\Formatter\LineFormatter::class,
+                    'constructor' => [
+                        'format' => null,
+                        'dateFormat' => null,
+                        'allowInlineLineBreaks' => true,
+                    ],
+                ]
+            ],
+            // error日志
+            [
+                'class' => App\Core\Handler\LogFileHandler::class,
+                'constructor' => [
+                    'stream' => BASE_PATH . '/runtime/logs/error/[datetime].log',
+                    'level' => Monolog\Logger::ERROR,
+                ],
+                'formatter' => [
+                    'class' => \App\Core\Formatter\LineFormatter::class,
+                    'constructor' => [
+                        'format' => null,
+                        'dateFormat' => null,
+                        'allowInlineLineBreaks' => true,
+                    ],
+                ]
+            ],
+        ]
+    ]
 ];
