@@ -18,9 +18,6 @@ use Hyperf\Contract\StdoutLoggerInterface;
 /**
  * 请求响应结果
  * @package App\Container
- * User：YM
- * Date：2019/11/15
- * Time：下午5:35
  */
 class Response
 {

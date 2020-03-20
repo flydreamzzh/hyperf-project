@@ -16,9 +16,6 @@ use Hyperf\Utils\Context;
  * RequestMiddleware
  * 接到客户端请求，通过该中间件进行一些调整
  * @package App\Middleware
- * User：YM
- * Date：2019/12/16
- * Time：上午12:13
  */
 class RequestMiddleware implements MiddlewareInterface
 {

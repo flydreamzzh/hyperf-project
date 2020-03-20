@@ -29,7 +29,7 @@ Trait HyStaticInstance
         }
 
         if ($refresh || is_null($instance) || ! $instance instanceof static) {
-            $instance = make(self::class, ...$params);
+            $instance = make(static::class, ...$params);
             Context::set($key, $instance);
         }
 
