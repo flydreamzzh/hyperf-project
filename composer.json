@@ -35,6 +35,7 @@
         "hyperf/process": "~1.1.0",
         "hyperf/redis": "~1.1.0",
         "hyperf/utils": "~1.1.0",
+        "hyperf/crontab": "^1.1",
         "ext-json": "*"
     },
     "require-dev": {

@@ -11,4 +11,6 @@ declare(strict_types=1);
  */
 
 return [
+    //捕获Deprecated、Notice、Waning级别错误
+    \Hyperf\ExceptionHandler\Listener\ErrorExceptionHandler::class
 ];

@@ -13,9 +13,8 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Core\BaseController;
-use App\Core\Components\Log;
 use App\Model\User;
-use Hyperf\DbConnection\Db;
+use App\Services\ManagerService;
 use Hyperf\HttpServer\Annotation\AutoController;
 
 /**

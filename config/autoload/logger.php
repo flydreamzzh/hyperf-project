@@ -78,6 +78,40 @@ return [
                     ],
                 ]
             ],
+            //命令行、定时任务
+            [
+                'class' => App\Core\Handler\LogFileHandler::class,
+                'constructor' => [
+                    'stream' => BASE_PATH . '/runtime/logs/command/[datetime].log',
+                    'level' => Monolog\Logger::INFO,
+                    'channel' => 'command'
+                ],
+                'formatter' => [
+                    'class' => \App\Core\Formatter\CommandLineFormatter::class,
+                    'constructor' => [
+                        'format' => null,
+                        'dateFormat' => null,
+                        'allowInlineLineBreaks' => true,
+                    ],
+                ]
+            ],
+            //命令行、定时任务
+            [
+                'class' => App\Core\Handler\LogFileHandler::class,
+                'constructor' => [
+                    'stream' => BASE_PATH . '/runtime/logs/command/error/[datetime].log',
+                    'level' => Monolog\Logger::ERROR,
+                    'channel' => 'command'
+                ],
+                'formatter' => [
+                    'class' => \App\Core\Formatter\CommandLineFormatter::class,
+                    'constructor' => [
+                        'format' => null,
+                        'dateFormat' => null,
+                        'allowInlineLineBreaks' => true,
+                    ],
+                ]
+            ],
         ]
-    ]
+    ],
 ];
