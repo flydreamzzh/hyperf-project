@@ -73,13 +73,8 @@ class Response
     }
 
     /**
-     * json
-     * 直接返回数据
-     * User：YM
-     * Date：2019/12/16
-     * Time：下午4:22
-     * @param $data
-     * @return \Psr\Http\Message\ResponseInterface
+     * @param array $data
+     * @return PsrResponseInterface
      */
     public function json(array $data)
     {
@@ -87,13 +82,8 @@ class Response
     }
 
     /**
-     * xml
-     * 返回xml数据
-     * User：YM
-     * Date：2019/12/16
-     * Time：下午4:58
-     * @param $data
-     * @return \Psr\Http\Message\ResponseInterface
+     * @param array $data
+     * @return PsrResponseInterface
      */
     public function xml(array $data)
     {
@@ -101,15 +91,10 @@ class Response
     }
 
     /**
-     * redirect
-     * 重定向
-     * User：YM
-     * Date：2019/12/16
-     * Time：下午5:00
      * @param string $url
      * @param string $schema
      * @param int $status
-     * @return \Psr\Http\Message\ResponseInterface
+     * @return PsrResponseInterface
      */
     public function redirect(string $url,string $schema = 'http', int $status = 302 )
     {
@@ -117,14 +102,9 @@ class Response
     }
 
     /**
-     * download
-     * 下载文件
-     * User：YM
-     * Date：2019/12/16
-     * Time：下午5:04
      * @param string $file
      * @param string $name
-     * @return \Psr\Http\Message\ResponseInterface
+     * @return PsrResponseInterface
      */
     public function download(string $file, string $name = '')
     {
@@ -132,11 +112,6 @@ class Response
     }
 
     /**
-     * cookie
-     * 设置cookie
-     * User：YM
-     * Date：2019/12/16
-     * Time：下午10:17
      * @param string $name
      * @param string $value
      * @param int $expire
@@ -145,7 +120,7 @@ class Response
      * @param bool $secure
      * @param bool $httpOnly
      * @param bool $raw
-     * @param null|string $sameSite
+     * @param string|null $sameSite
      */
     public function cookie(string $name,string $value = '', $expire = 0, string $path = '/', string $domain = '', bool $secure = false, bool $httpOnly = true, bool $raw = false, ?string $sameSite = null)
     {
