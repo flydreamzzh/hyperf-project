@@ -21,7 +21,7 @@ abstract class BaseTask
             call([$this, 'task']);
             $prefix = $this->getLogPrefix();
             $message = implode(' | ', [$prefix, 'SUCCESS']);
-            Log::get('command')->error($message);
+            Log::get('command')->info($message);
         } catch (\Throwable $exception) {
             $prefix = $this->getLogPrefix();
             $message = sprintf('%s[%s] in %s',$exception->getMessage(), $exception->getFile(), $exception->getLine());

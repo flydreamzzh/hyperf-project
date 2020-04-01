@@ -13,23 +13,9 @@ declare(strict_types=1);
 return [
     'default' => [
         'handlers' => [
-            //info、waring、notice日志等
-            [
-                'class' => App\Core\Handler\LogFileHandler::class,
-                'constructor' => [
-                    'stream' => BASE_PATH . '/runtime/logs/info/[datetime].log',
-                    'level' => Monolog\Logger::INFO,
-                ],
-                'formatter' => [
-                    'class' => \App\Core\Formatter\LineFormatter::class,
-                    'constructor' => [
-                        'format' => null,
-                        'dateFormat' => null,
-                        'allowInlineLineBreaks' => true,
-                    ],
-                ]
-            ],
-            //数据库语句
+
+            /***************************************************** 数据库性能 ******************************************************/
+
             [
                 'class' => App\Core\Handler\LogFileHandler::class,
                 'constructor' => [
@@ -46,7 +32,24 @@ return [
                     ],
                 ]
             ],
-            // debug日志
+
+
+            /***************************************************** API接口 ******************************************************/
+            [
+                'class' => App\Core\Handler\LogFileHandler::class,
+                'constructor' => [
+                    'stream' => BASE_PATH . '/runtime/logs/info/[datetime].log',
+                    'level' => Monolog\Logger::INFO,
+                ],
+                'formatter' => [
+                    'class' => \App\Core\Formatter\LineFormatter::class,
+                    'constructor' => [
+                        'format' => null,
+                        'dateFormat' => null,
+                        'includeStacktraces' => true,
+                    ],
+                ]
+            ],
             [
                 'class' => App\Core\Handler\LogFileHandler::class,
                 'constructor' => [
@@ -78,7 +81,8 @@ return [
                     ],
                 ]
             ],
-            //命令行、定时任务
+
+            /***************************************************** 命令行、定时任务 ******************************************************/
             [
                 'class' => App\Core\Handler\LogFileHandler::class,
                 'constructor' => [
@@ -95,7 +99,6 @@ return [
                     ],
                 ]
             ],
-            //命令行、定时任务
             [
                 'class' => App\Core\Handler\LogFileHandler::class,
                 'constructor' => [
@@ -105,6 +108,40 @@ return [
                 ],
                 'formatter' => [
                     'class' => \App\Core\Formatter\CommandLineFormatter::class,
+                    'constructor' => [
+                        'format' => null,
+                        'dateFormat' => null,
+                        'allowInlineLineBreaks' => true,
+                    ],
+                ]
+            ],
+
+            /***************************************************** 发送邮件 ******************************************************/
+            [
+                'class' => App\Core\Handler\LogFileHandler::class,
+                'constructor' => [
+                    'stream' => BASE_PATH . '/runtime/logs/mailer/[datetime].log',
+                    'level' => Monolog\Logger::INFO,
+                    'channel' => 'mailer'
+                ],
+                'formatter' => [
+                    'class' => \App\Core\Formatter\MailerLineFormatter::class,
+                    'constructor' => [
+                        'format' => null,
+                        'dateFormat' => null,
+                        'allowInlineLineBreaks' => true,
+                    ],
+                ]
+            ],
+            [
+                'class' => App\Core\Handler\LogFileHandler::class,
+                'constructor' => [
+                    'stream' => BASE_PATH . '/runtime/logs/mailer/error/[datetime].log',
+                    'level' => Monolog\Logger::ERROR,
+                    'channel' => 'mailer'
+                ],
+                'formatter' => [
+                    'class' => \App\Core\Formatter\MailerLineFormatter::class,
                     'constructor' => [
                         'format' => null,
                         'dateFormat' => null,

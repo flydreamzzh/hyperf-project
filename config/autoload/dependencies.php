@@ -11,4 +11,5 @@ declare(strict_types=1);
  */
 
 return [
+    \Hyperf\Logger\LoggerFactory::class => \App\Core\Dependence\MyLoggerFactory::class,//替换addRecord方法，不序列化(string)日志信息
 ];

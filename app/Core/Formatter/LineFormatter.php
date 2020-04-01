@@ -3,9 +3,11 @@
 
 namespace App\Core\Formatter;
 
+use App\Services\AlarmService;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use \Monolog\Formatter\LineFormatter as BaseLineFormatter;
+use Monolog\Logger;
 
 /**
  * 日志格式化，添加额外的字段
@@ -51,6 +53,16 @@ class LineFormatter extends BaseLineFormatter
         $method = $this->request->getMethod();
 
         $result = preg_replace(['/%appid%/', '/%pid%/', '/%session_id%/', '/%ip%/', '/%uri%/', '/%method%/'], [$appId, $pid, $sessionId, $ip, $uri, $method], $result);
+
+        if ($record['level'] >= Logger::ERROR) {
+            $alarmMessage = $result;
+            $key = is_object($record['message']) ? $this->toJson($record['message'], true) : $record['message'];
+            if ($record['message'] instanceof \Throwable && !$this->includeStacktraces) {
+                $alarmMessage = sprintf("%s\nStack trace:\n%s", $result, $record['message']->getTraceAsString());
+                $key = sprintf('%s[%s] in %s', $record['message']->getMessage(), $record['message']->getLine(), $record['message']->getFile());
+            }
+            AlarmService::addAlarm($key,"[报错通知]", $alarmMessage);
+        }
         return $result;
     }
 }

@@ -3,18 +3,21 @@
 
 namespace App\Core\Formatter;
 
-use App\Services\AlarmService;
+use App\Core\Components\EmailSender;
+use Hyperf\Command\Command;
+use Hyperf\Contract\ContainerInterface;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;
+use Hyperf\Utils\ApplicationContext;
 use \Monolog\Formatter\LineFormatter as BaseLineFormatter;
-use Monolog\Logger;
+use Symfony\Component\Console\CommandLoader\CommandLoaderInterface;
 
 /**
  * 日志格式化，添加额外的字段
  * Class LineFormatter
  * @package App\Base\Formatter
  */
-class CommandLineFormatter extends BaseLineFormatter
+class MailerLineFormatter extends BaseLineFormatter
 {
     /**
      * @Inject()
@@ -48,16 +51,6 @@ class CommandLineFormatter extends BaseLineFormatter
         $pid = getmypid();
         $user = get_current_user();
         $result = preg_replace(['/%appid%/', '/%pid%/', '/%user%/'], [$appId, $pid, $user], $result);
-
-        if ($record['level'] >= Logger::ERROR) {
-            $alarmMessage = $result;
-            $key = is_object($record['message']) ? $this->toJson($record['message'], true) : $record['message'];
-            if ($record['message'] instanceof \Throwable && !$this->includeStacktraces) {
-                $alarmMessage = sprintf("%s\nStack trace:\n%s", $result, $record['message']->getTraceAsString());
-                $key = sprintf('%s[%s] in %s', $record['message']->getMessage(), $record['message']->getLine(), $record['message']->getFile());
-            }
-            AlarmService::addAlarm($key, "[报错通知][命令行]", $alarmMessage);
-        }
         return $result;
     }
 }

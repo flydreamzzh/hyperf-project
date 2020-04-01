@@ -31,6 +31,25 @@ class Log
         return ApplicationContext::getContainer()->get(\Hyperf\Logger\LoggerFactory::class)->get($name, $group);
     }
 
+
+    /**
+     * 终端日志
+     * @return \Psr\Log\LoggerInterface
+     */
+    public static function commandLog()
+    {
+        return self::get('command');
+    }
+
+    /**
+     * 邮箱发送日志
+     * @return \Psr\Log\LoggerInterface
+     */
+    public static function mailerLog()
+    {
+        return self::get('mailer');
+    }
+
     /**
      * @param $method
      * @param $parameters
