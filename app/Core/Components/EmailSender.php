@@ -4,6 +4,7 @@
 namespace App\Core\Components;
 
 use App\Core\Traits\HyStaticInstance;
+use Hyperf\Utils\Coroutine;
 use PHPMailer\PHPMailer\PHPMailer;
 
 /**
@@ -72,6 +73,7 @@ class EmailSender
      */
     public function setTo($addresses = [])
     {
+        $addresses = is_array($addresses) ? $addresses : [$addresses];
         $this->mailer->clearAddresses();
         foreach ($addresses as $address) {
             $this->mailer->addAddress($address);
@@ -80,9 +82,11 @@ class EmailSender
     }
 
     /**
+     * 同步发送
+     * 调用这个方法不会有协程异步的特性
      * @return mixed
      */
-    public function send()
+    public function syncSend()
     {
         $channel = new \Swoole\Coroutine\Channel();
         co(function () use ($channel) {
@@ -90,5 +94,15 @@ class EmailSender
             $channel->push($result);
         });
         return $channel->pop();
+    }
+
+    /**
+     * @return bool
+     * @throws \PHPMailer\PHPMailer\Exception
+     */
+    public function send()
+    {
+        $result = $this->mailer->Send();
+        return $result;
     }
 }

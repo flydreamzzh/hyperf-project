@@ -10,6 +10,7 @@ use App\Core\Components\Log;
 use App\Core\Helpers\DateHelper;
 use Hyperf\Redis\Redis;
 use Hyperf\Utils\ApplicationContext;
+use Hyperf\Utils\WaitGroup;
 
 /**
  * 报警发送服务
@@ -57,11 +58,12 @@ class AlarmService extends BaseService
             if ($redis->ping() === true) {
                 return $redis;
             }
-            return false;        }
-        catch (\Throwable $e) {
+            return false;
+        } catch (\Throwable $e) {
             return false;
         }
     }
+
     /**
      * 添加告警，一周统计一次
      * @param string $key 告警标识
@@ -94,7 +96,7 @@ class AlarmService extends BaseService
         $redis->hMSet($redisKey, $data);
 
         if ($redis->hincrby(self::ALARM_KEY, $redisKey, 1) == 1) {
-            $redis->hsetnx(self::ALARM_KEY_STATUS, $redisKey.'start_datetime', $curTime);
+            $redis->hsetnx(self::ALARM_KEY_STATUS, $redisKey . 'start_datetime', $curTime);
         }
         //设置2小时过期
         $redis->expire($redisKey, 7200);
@@ -113,58 +115,69 @@ class AlarmService extends BaseService
         while (time() - $curTime < 60) {//循环一分钟，定时任务1分钟
             $alarmKeys = $redis->hkeys(self::ALARM_KEY);
             if ($alarmKeys) {
+                //使用WaitGroup特性，保证每次循环都不相互干扰，若不使用此特性，由于redis协程的原因，判断出问题，会导致同一个告警多发，且发送的内容为空
+                $waitGroup = new WaitGroup();
+                $waitGroup->add(count($alarmKeys));
                 foreach ($alarmKeys as $alarmKey) {
                     //存在告警队列
                     if ($redis->exists($alarmKey)) {
-                        //锁定当前告警
-                        if (($lockedTimes = $redis->hincrby($alarmKey, 'locked', 1)) == 1) {
-                            $alarmSubject = $redis->hget($alarmKey, 'subject');
-                            $alarmContent = $redis->hget($alarmKey, 'content');
-                            $alarmCurDatetime = $redis->hget($alarmKey, 'datetime');
+                        $latestTime = $redis->hget(self::ALARM_KEY_STATUS, $alarmKey . 'sendAt');
+                        $sendTimes = $redis->hget(self::ALARM_KEY_STATUS, $alarmKey . 'sendTimes');
+                        $sendTimes = $sendTimes ? $sendTimes : 0;
+                        $nextSendTime = self::getNextTime($latestTime, $sendTimes);
 
-                            $alarmQty = $redis->hget(self::ALARM_KEY, $alarmKey);//出现次数
-                            $start_datetime = $redis->hget(self::ALARM_KEY_STATUS, $alarmKey.'start_datetime');//首次出现时间
-                            $latestTime = $redis->hget(self::ALARM_KEY_STATUS, $alarmKey.'sendAt');
-                            $sendTimes = $redis->hget(self::ALARM_KEY_STATUS, $alarmKey.'sendTimes');
-                            $sendTimes = $sendTimes ? $sendTimes : 0;
+                        if (empty($latestTime) || $nextSendTime < time()) {
+                            //锁定当前告警
+                            if ($redis->hSetNx($alarmKey, 'locked', time())) {
+                                //开启异步协程
+                                co(function () use ($waitGroup, $redis, $alarmKey, $sendTimes) {
+                                    $alarmSubject = $redis->hget($alarmKey, 'subject');
+                                    $alarmContent = $redis->hget($alarmKey, 'content');
+                                    $alarmCurDatetime = $redis->hget($alarmKey, 'datetime');
 
-                            if (empty($latestTime) || self::getNextTime($latestTime, $sendTimes) < time()) {
-                                try {
-                                    $times = !empty($latestTime) ? $sendTimes + 1 : 1;
-                                    $head = "【本周】首次记录时间：{$start_datetime}，最新记录时间：{$alarmCurDatetime}，记录次数：{$alarmQty}。已发送次数：{$times}";
-                                    $content = implode("\n\n", [$head, $alarmContent]);
-                                    if (!$result = self::sendEmail($alarmSubject, $content)) {
-                                        if ($redis->hSetNx(self::ALARM_KEY_STATUS, $alarmKey.'failAt', time())) {
-                                            Log::mailerLog()->error($alarmSubject . "[$alarmKey]::发送失败====" . str_replace(["\r\n", "\n", "\r"],' -> ', $alarmContent));
+                                    $alarmQty = $redis->hget(self::ALARM_KEY, $alarmKey);//出现次数
+                                    $start_datetime = $redis->hget(self::ALARM_KEY_STATUS, $alarmKey . 'start_datetime');//首次出现时间
+
+                                    try {
+                                        $times = !empty($latestTime) ? $sendTimes + 1 : 1;
+                                        $head = "【本周】首次记录时间：{$start_datetime}，最新记录时间：{$alarmCurDatetime}，记录次数：{$alarmQty}。已发送次数：{$times}";
+                                        $content = implode("\n\n", [$head, $alarmContent]);
+                                        if (!$result = self::sendEmail($alarmSubject, $content)) {
+                                            if ($redis->hSetNx(self::ALARM_KEY_STATUS, $alarmKey . 'failAt', time())) {
+                                                Log::mailerLog()->error($alarmSubject . "[$alarmKey]::发送失败====" . str_replace(["\r\n", "\n", "\r"], ' -> ', $alarmContent));
+                                            }
+                                        } else {
+                                            //成功则删除告警队列
+                                            $redis->del($alarmKey);
+                                            $redis->hset(self::ALARM_KEY_STATUS, $alarmKey . 'sendAt', time());
+                                            $redis->hincrby(self::ALARM_KEY_STATUS, $alarmKey . 'sendTimes', 1);
                                         }
-                                    } else {
-                                        //成功则删除告警队列
-                                        $redis->del($alarmKey);
-                                        $redis->hset(self::ALARM_KEY_STATUS, $alarmKey.'sendAt', time());
-                                        $redis->hincrby(self::ALARM_KEY_STATUS, $alarmKey.'sendTimes', 1);
+                                        echo $alarmSubject . "[$alarmKey]::发送完成，结果：" . ($result ? 'success' : 'fail') . PHP_EOL;
+                                    } catch (\Throwable $e) {
+                                        if ($redis->hSetNx(self::ALARM_KEY_STATUS, $alarmKey . 'failAt', time())) {
+                                            Log::mailerLog()->error($alarmSubject . "[$alarmKey]::发送异常【" . $e->getMessage() . '】====' . str_replace(["\r\n", "\n", "\r"], ' -> ', $alarmContent));
+                                        }
+                                        echo $alarmSubject . "[$alarmKey]::发送异常" . $e->getMessage() . PHP_EOL;
                                     }
-                                    echo $alarmSubject . "[$alarmKey]::发送完成，结果：" . ($result ? 'success' : 'fail') . PHP_EOL;
-                                } catch (\Throwable $e) {
-                                    if ($redis->hSetNx(self::ALARM_KEY_STATUS, $alarmKey.'failAt', time())) {
-                                        Log::mailerLog()->error($alarmSubject . "[$alarmKey]::发送异常【" . $e->getMessage() . '】====' . str_replace(["\r\n", "\n", "\r"],' -> ', $alarmContent));
-                                    }
-                                    echo $alarmSubject . "[$alarmKey]::发送异常" . $e->getMessage() . PHP_EOL;
+                                    $waitGroup->done();
+                                });
+                            } else {
+                                //告警发送被锁
+                                $alarmSubject = $redis->hget($alarmKey, 'subject');
+                                $alarmContent = $redis->hget($alarmKey, 'content');
+                                if ($redis->hSetNx(self::ALARM_KEY_STATUS, $alarmKey . 'failAt', time())) {
+                                    Log::mailerLog()->error($alarmSubject . "[$alarmKey]::告警被锁，发送失败====" . str_replace(["\r\n", "\n", "\r"], ' -> ', $alarmContent));
                                 }
-                            }
-                        } else {
-                            //告警发送被锁
-                            $alarmSubject = $redis->hget($alarmKey, 'subject');
-                            $alarmContent = $redis->hget($alarmKey, 'content');
-                            if ($redis->hSetNx(self::ALARM_KEY_STATUS, $alarmKey.'failAt', time())) {
-                                Log::mailerLog()->error($alarmSubject . "[$alarmKey]::告警被锁，发送失败====" . str_replace(["\r\n", "\n", "\r"],' -> ', $alarmContent));
-                            }
-                            if ($lockedTimes > 100) {
-                                //锁住超过100次时，删除锁标识，防止该消息不推送
-                                $redis->hdel($alarmKey, 'locked');
+                                $lockAt = $redis->hGet($alarmKey, 'locked');//锁定60秒
+                                if (time() - $lockAt > 60) {
+                                    //锁住60秒，删除锁标识，防止该消息不推送
+                                    $redis->hdel($alarmKey, 'locked');
+                                }
                             }
                         }
                     }
                 }
+                $waitGroup->wait();
             }
         }
     }
