@@ -10,7 +10,7 @@ use App\Core\Components\Log;
 use App\Core\Helpers\DateHelper;
 use Hyperf\Redis\Redis;
 use Hyperf\Utils\ApplicationContext;
-use Hyperf\Utils\WaitGroup;
+use Hyperf\Utils\Parallel;
 
 /**
  * 报警发送服务
@@ -74,7 +74,7 @@ class AlarmService extends BaseService
     {
         $curTime = date('Y-m-d H:i:s');
         if (!$redis = static::getRedis()) {
-            echo 'Redis 链接失败！';
+            echo 'Redis 链接失败！' . PHP_EOL;
             return;
         }
         $data = [
@@ -116,8 +116,7 @@ class AlarmService extends BaseService
             $alarmKeys = $redis->hkeys(self::ALARM_KEY);
             if ($alarmKeys) {
                 //使用WaitGroup特性，保证每次循环都不相互干扰，若不使用此特性，由于redis协程的原因，判断出问题，会导致同一个告警多发，且发送的内容为空
-                $waitGroup = new WaitGroup();
-                $waitGroup->add(count($alarmKeys));
+                $parallel = new Parallel();
                 foreach ($alarmKeys as $alarmKey) {
                     //存在告警队列
                     if ($redis->exists($alarmKey)) {
@@ -130,7 +129,8 @@ class AlarmService extends BaseService
                             //锁定当前告警
                             if ($redis->hSetNx($alarmKey, 'locked', time())) {
                                 //开启异步协程
-                                co(function () use ($waitGroup, $redis, $alarmKey, $sendTimes) {
+
+                                $parallel->add(function () use ($redis, $alarmKey, $sendTimes) {
                                     $alarmSubject = $redis->hget($alarmKey, 'subject');
                                     $alarmContent = $redis->hget($alarmKey, 'content');
                                     $alarmCurDatetime = $redis->hget($alarmKey, 'datetime');
@@ -159,7 +159,6 @@ class AlarmService extends BaseService
                                         }
                                         echo $alarmSubject . "[$alarmKey]::发送异常" . $e->getMessage() . PHP_EOL;
                                     }
-                                    $waitGroup->done();
                                 });
                             } else {
                                 //告警发送被锁
@@ -177,7 +176,7 @@ class AlarmService extends BaseService
                         }
                     }
                 }
-                $waitGroup->wait();
+                $parallel->wait();
             }
         }
     }
