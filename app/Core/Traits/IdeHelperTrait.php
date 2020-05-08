@@ -17,6 +17,7 @@ use Hyperf\Database\Model\Builder;
  * @method static \Hyperf\Database\Query\Builder whereIn($column, $values, $boolean = 'and', $not = false)
  * @method static \Hyperf\Database\Model\Collection|\Hyperf\Database\Model\Model|static|static[] findOrFail($id, $columns = ['*'])
  * @method static \Hyperf\Database\Model\Collection|static[] findMany($ids, $columns = ['*'])
+ * @method static \Hyperf\Database\Model\Model|static first($columns = ['*'])
  * @method static \Hyperf\Database\Model\Model|static firstOrNew(array $attributes, array $values = [])
  * @method static \Hyperf\Database\Model\Model|static firstOrCreate(array $attributes, array $values = [])
  * @method static \Hyperf\Database\Model\Model|mixed|static firstOr($columns = ['*'], Closure $callback = null)

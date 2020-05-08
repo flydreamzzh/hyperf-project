@@ -13,6 +13,9 @@ declare(strict_types=1);
 return [
     'handler' => [
         'http' => [
+            //请求数据验证失败的错误管理
+            \App\Exception\Handler\ValidationExceptionHandler::class,
+            //全局异常处理
             App\Exception\Handler\AppExceptionHandler::class,
         ],
     ],

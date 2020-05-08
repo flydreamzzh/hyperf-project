@@ -13,7 +13,7 @@ use Symfony\Component\Console\Input\InputOption;
 /**
  * @Command
  */
-class Demo extends BaseCommand
+class DemoCommand extends BaseCommand
 {
     /**
      * 执行的命令行

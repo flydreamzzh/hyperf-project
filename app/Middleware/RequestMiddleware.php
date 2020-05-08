@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Middleware;
 
+use App\Core\Components\Identity;
 use App\Core\Components\Log;
+use App\Model\User;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -29,6 +31,16 @@ class RequestMiddleware implements MiddlewareInterface
      */
     protected $request;
 
+    /**
+     * @var string the parameter name for passing the access token
+     */
+    public $tokenParam = 'access_token';
+
+    /**
+     * @var string the HTTP header name
+     */
+    public $header = 'X-Api-Key';
+
     public function __construct(ContainerInterface $container, ServerRequestInterface $request)
     {
         $this->container = $container;
@@ -39,6 +51,7 @@ class RequestMiddleware implements MiddlewareInterface
     {
         // 利用协程上下文存储请求开始的时间，用来计算程序执行时间
         Context::set('request_start_time', microtime(true));
+        $this->authenticate();
         $response = $handler->handle($request);
         //记录日志
         $executionTime = microtime(true) - Context::get('request_start_time');
@@ -47,5 +60,28 @@ class RequestMiddleware implements MiddlewareInterface
         $logInfo = implode(' | ', [$executionTime, $queryParams, $result]);
         Log::info($logInfo);
         return $response;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function authenticate()
+    {
+        Context::set(Identity::class, make(Identity::class));
+        Context::override(Identity::class, function (Identity $identity) {
+            $accessToken = $this->request->post($this->tokenParam);//post，比较安全
+            $params = $this->request->getServerParams();
+            $ip = isset($params['remote_addr']) ? $params['remote_addr'] : '';
+            if (!$accessToken) {
+                $headerName = config('user.accessTokenHeader') ?? $this->header;
+                $accessToken = $this->request->getHeaderLine($headerName);
+            }
+            if (is_string($accessToken) && User::validateAccessToken($accessToken, $ip)) {
+                $identity->loginByAccessToken($accessToken, get_class($this));
+            } else {
+                $identity->setIdentity(null);
+            }
+            return $identity;
+        });
     }
 }

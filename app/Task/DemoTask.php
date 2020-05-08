@@ -6,11 +6,10 @@ use Hyperf\Crontab\Annotation\Crontab;
 use Hyperf\Di\Annotation\Inject;
 
 /**
- * 注释Crontab(name="Foo", rule="*\/5 * * * * *", callback="execute", memo="这是一个示例的定时任务")
+ * 注释Crontab(name="Demo", rule="*\/5 * * * * *", callback="execute", memo="这是一个示例的定时任务")
  */
-class FooTask extends BaseTask
+class DemoTask extends BaseTask
 {
-
     /**
      * @Inject()
      * @var \Hyperf\Contract\StdoutLoggerInterface

@@ -27,4 +27,10 @@ return [
             LogLevel::WARNING,
         ],
     ],
+    'user' => [
+        'administrator_id' => 1,
+        'passwordResetTokenExpire' => 3600,
+        'accessTokenExpire' => 7200,//access_token过期时间 2h
+        'accessTokenHeader' => 'X-Api-Key',//access_token 请求接收的Header名称
+    ]
 ];

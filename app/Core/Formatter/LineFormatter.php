@@ -6,8 +6,10 @@ namespace App\Core\Formatter;
 use App\Services\AlarmService;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;
+use Hyperf\Utils\Context;
 use \Monolog\Formatter\LineFormatter as BaseLineFormatter;
 use Monolog\Logger;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * 日志格式化，添加额外的字段
@@ -47,11 +49,15 @@ class LineFormatter extends BaseLineFormatter
         $appId = env('APP_NAME', '-');
         $pid = getmypid();
         $sessionId = '-';
-        $params = $this->request->getServerParams();
-        $ip = isset($params['remote_addr']) ? $params['remote_addr'] : '-';
-        $uri = $this->request->getRequestTarget();
-        $method = $this->request->getMethod();
-
+        $ip = '-';
+        $uri = '-';
+        $method = '-';
+        if (Context::get(ServerRequestInterface::class)) {
+            $params = $this->request->getServerParams();
+            $ip = isset($params['remote_addr']) ? $params['remote_addr'] : '-';
+            $uri = $this->request->getRequestTarget();
+            $method = $this->request->getMethod();
+        }
         $result = preg_replace(['/%appid%/', '/%pid%/', '/%session_id%/', '/%ip%/', '/%uri%/', '/%method%/'], [$appId, $pid, $sessionId, $ip, $uri, $method], $result);
 
         if ($record['level'] >= Logger::ERROR) {
