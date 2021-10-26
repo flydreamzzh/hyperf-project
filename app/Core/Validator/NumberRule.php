@@ -1,16 +1,22 @@
 <?php
 
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Core\Validator;
-
 
 use App\Core\Helpers\StringHelper;
 use App\Core\Validator\Base\BaseRule;
 use Hyperf\Validation\Validator;
 
 /**
- * Class NumberRule
- * @package App\Core\Validator
+ * Class NumberRule.
  */
 class NumberRule extends BaseRule
 {
@@ -18,19 +24,20 @@ class NumberRule extends BaseRule
      * @var bool whether the attribute value can only be an integer. Defaults to false.
      */
     public $integerOnly = false;
+
     /**
-     * @var string the regular expression for matching integers.
+     * @var string the regular expression for matching integers
      */
     public $integerPattern = '/^\s*[+-]?\d+\s*$/';
+
     /**
      * @var string the regular expression for matching numbers. It defaults to a pattern
-     * that matches floating numbers with optional exponential part (e.g. -1.23e-10).
+     *             that matches floating numbers with optional exponential part (e.g. -1.23e-10).
      */
     public $numberPattern = '/^\s*[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?\s*$/';
 
     /**
-     * 验证规则名称
-     * @return string
+     * 验证规则名称.
      */
     public static function ruleName(): string
     {
@@ -38,8 +45,7 @@ class NumberRule extends BaseRule
     }
 
     /**
-     * 默认返回的验证规则中文提示
-     * @return string
+     * 默认返回的验证规则中文提示.
      */
     public static function defaultMessage(): string
     {
@@ -60,7 +66,7 @@ class NumberRule extends BaseRule
         }
         $pattern = $this->integerOnly ? $this->integerPattern : $this->numberPattern;
 
-        if (!preg_match($pattern, StringHelper::normalizeNumber($value))) {
+        if (! preg_match($pattern, StringHelper::normalizeNumber($value))) {
             return false;
         }
         return true;
@@ -73,7 +79,7 @@ class NumberRule extends BaseRule
     {
         return is_array($value)
             || is_bool($value)
-            || (is_object($value) && !method_exists($value, '__toString'))
-            || (!is_object($value) && !is_scalar($value) && $value !== null);
+            || (is_object($value) && ! method_exists($value, '__toString'))
+            || (! is_object($value) && ! is_scalar($value) && $value !== null);
     }
 }

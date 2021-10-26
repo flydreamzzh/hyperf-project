@@ -1,7 +1,14 @@
 <?php
 
 declare(strict_types=1);
-
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Middleware;
 
 use App\Core\Components\Identity;
@@ -14,35 +21,19 @@ use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\Utils\Context;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 /**
  * 权限验证
- * Class AuthMiddleware
- * @package App\Middleware
+ * Class AuthMiddleware.
  */
 class AuthMiddleware implements MiddlewareInterface
 {
     /**
-     * @var ContainerInterface
-     */
-    protected $container;
-
-    /**
-     * @var RequestInterface
-     */
-    protected $request;
-
-    /**
-     * @var User User for check access.
-     */
-    private $_user = 'user';
-
-    /**
      * 不用登录也能 访问的地址
-     * @var array List of action that not need to check access.
+     * @var array list of action that not need to check access
      */
     public $allowActions = [];
 
@@ -57,6 +48,21 @@ class AuthMiddleware implements MiddlewareInterface
      * @var bool
      */
     public $defaultAccess = false;
+
+    /**
+     * @var ContainerInterface
+     */
+    protected $container;
+
+    /**
+     * @var RequestInterface
+     */
+    protected $request;
+
+    /**
+     * @var User user for check access
+     */
+    private $_user = 'user';
 
     public function __construct(ContainerInterface $container, RequestInterface $request)
     {
@@ -81,9 +87,9 @@ class AuthMiddleware implements MiddlewareInterface
     }
 
     /**
-     * @return bool|void
      * @throws ForbiddenHttpException
      * @throws UnauthorizedHttpException
+     * @return bool|void
      */
     public function accessControl()
     {
@@ -91,34 +97,34 @@ class AuthMiddleware implements MiddlewareInterface
         $user = $this->getUser();
         if ($user && $curUser = User::findOne(['id' => $user->id])) {
             if ($curUser->status != User::STATUS_ACTIVE) {
-                throw new ForbiddenHttpException("此用户已被禁用，没有权限进行此操作");
+                throw new ForbiddenHttpException('此用户已被禁用，没有权限进行此操作');
             }
         }
         $url = $this->request->getUri()->getPath();
         //登录状态才能访问
         if ($this->getIdentity()->getIsGuest() && RbacPermission::isExcept($url, $this->loginActions)) {
-            return $this->denyAccess($this->getIdentity());
+            $this->denyAccess($this->getIdentity());
         }
         //直接通过
         if (RbacPermission::isExcept($url, ArrayHelper::merge($this->allowActions, $this->loginActions))) {
             return true;
         }
         if ($this->getIdentity()->getIsGuest()) {
-            return $this->denyAccess($this->getIdentity());
+            $this->denyAccess($this->getIdentity());
         }
         if (RbacPermission::can($user->id, $url, [], $this->defaultAccess)) {
             return true;
         }
-        return $this->denyAccess($this->getIdentity());
+        $this->denyAccess($this->getIdentity());
     }
 
     /**
-     * Get user
+     * Get user.
      * @return User
      */
     public function getUser()
     {
-        if (!$this->_user instanceof User) {
+        if (! $this->_user instanceof User) {
             $this->_user = $this->getIdentity()->getIdentity();
         }
         return $this->_user;
@@ -130,23 +136,21 @@ class AuthMiddleware implements MiddlewareInterface
      * if the user is already logged, a 403 HTTP exception will be thrown.
      * @param Identity $user the current user
      * @throws UnauthorizedHttpException
-     * @throws ForbiddenHttpException if the user is already logged in.
+     * @throws ForbiddenHttpException if the user is already logged in
      */
-    protected function denyAccess($user)
+    protected function denyAccess(Identity $user)
     {
         if ($user->getIsGuest()) {
             throw new UnauthorizedHttpException('用户需要登录');
-        } else {
-            throw new ForbiddenHttpException("用户没有权限进行此操作");
         }
+        throw new ForbiddenHttpException('用户没有权限进行此操作');
     }
 
     /**
-     * @return Identity|mixed|null
+     * @return null|Identity|mixed
      */
-    private function getIdentity()
+    private function getIdentity(): ?Identity
     {
         return Context::get(Identity::class);
     }
-
 }

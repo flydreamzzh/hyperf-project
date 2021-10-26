@@ -1,9 +1,15 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Model;
-
-
 
 use App\Model\Base\ConfigModel;
 
@@ -18,7 +24,7 @@ use App\Model\Base\ConfigModel;
  * @property int $system 是否系统配置，1是
  * @property int $sort 排序
  * @property string $options 选项
- * @property string $group 
+ * @property string $group
  */
 class SysConfig extends ConfigModel
 {
@@ -28,5 +34,4 @@ class SysConfig extends ConfigModel
      * @var string
      */
     protected $table = 'sys_config';
-
 }

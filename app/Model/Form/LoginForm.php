@@ -1,8 +1,15 @@
 <?php
 
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Model\Form;
-
 
 use App\Core\BaseModel;
 use App\Model\User;
@@ -12,25 +19,24 @@ use Hyperf\Validation\Validator;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
- * Class LoginForm
- * @package App\Model\Form
+ * Class LoginForm.
  * @property string $username 账号
  * @property string $password 密码
  */
 class LoginForm extends BaseModel
 {
     /**
-     * @var  User $_user
-     */
-    private $_user;
-
-    /**
-     * Token
+     * Token.
      * @var string
      */
     public $access_token;
 
     protected $fillable = ['username', 'password'];
+
+    /**
+     * @var User
+     */
+    private $_user;
 
     /**
      * {@inheritdoc}
@@ -43,11 +49,10 @@ class LoginForm extends BaseModel
         ];
     }
 
-
     /**
      * @return array
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'username' => '账号',
@@ -55,17 +60,16 @@ class LoginForm extends BaseModel
         ];
     }
 
-
     /**
      * @param $attribute
      * @param Validator $validator
-     * @return bool
      * @throws \Exception
+     * @return bool
      */
-    public function validatePassword($attribute, $validator)
+    public function validatePassword($attribute, $validator): bool
     {
         $user = $this->getUser();
-        if (!$user || !$user->validatePassword($this->password)) {
+        if (! $user || ! $user->validatePassword($this->password)) {
             return false;
         }
         return true;
@@ -113,9 +117,9 @@ class LoginForm extends BaseModel
     }
 
     /**
-     * Finds user by [[username]]
+     * Finds user by [[username]].
      *
-     * @return User|null
+     * @return null|User
      */
     public function getUser()
     {

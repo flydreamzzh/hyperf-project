@@ -1,5 +1,14 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Model\Base;
 
 use App\Core\BaseModel;
@@ -24,12 +33,14 @@ class ConfigValue extends BaseModel
      * @var string
      */
     protected $table = 'config_value';
+
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = ['name', 'value', 'group'];
+
     /**
      * The attributes that should be cast to native types.
      *
@@ -53,7 +64,7 @@ class ConfigValue extends BaseModel
     /**
      * {@inheritdoc}
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'id' => 'ID',
@@ -70,11 +81,11 @@ class ConfigValue extends BaseModel
     /**
      * @param string $name
      * @param string $group
-     * @return ConfigValue|null|static
+     * @return null|ConfigValue|static
      */
-    public static function findOrCreate($name, $group)
+    public static function findOrCreate(string $name, string $group): ?ConfigValue
     {
-        if (!$configValue = ConfigValue::findOne(['name' => $name, 'group' => $group])) {
+        if (! $configValue = ConfigValue::findOne(['name' => $name, 'group' => $group])) {
             $configValue = new ConfigValue();
             $configValue->name = $name;
             $configValue->group = $group;
@@ -88,11 +99,10 @@ class ConfigValue extends BaseModel
      * @param string $group
      * @return string
      */
-    public static function getConfigValue($name, $group)
+    public static function getConfigValue(string $name, string $group): string
     {
         $configValue = ConfigValue::findOne(['name' => $name, 'group' => $group]);
-        $value = $configValue ? $configValue->value : '';
-        return $value;
+        return $configValue ? $configValue->value : '';
     }
 
     /**
@@ -102,11 +112,10 @@ class ConfigValue extends BaseModel
      * @param string $value
      * @return bool
      */
-    public static function setConfigValue($name, $group, $value)
+    public static function setConfigValue(string $name, string $group, string $value): bool
     {
         $configValue = ConfigValue::findOrCreate($name, $group);
         $configValue->value = $value;
         return $configValue->save();
     }
-
 }

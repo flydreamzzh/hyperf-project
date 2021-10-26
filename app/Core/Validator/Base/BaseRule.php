@@ -1,8 +1,15 @@
 <?php
 
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Core\Validator\Base;
-
 
 use App\Core\Interfaces\RuleInterface;
 use App\Core\Interfaces\ValidateModelInterface;
@@ -18,22 +25,20 @@ abstract class BaseRule implements RuleInterface
     public $targetClass;
 
     /**
-     * 验证规则名称
-     * @return string
+     * 验证规则名称.
      */
     abstract public static function ruleName(): string;
 
     /**
-     * @return ValidateModelInterface|mixed|null
+     * @return null|mixed|ValidateModelInterface
      */
-    public function getTargetClass()
+    public function getTargetClass(): ?ValidateModelInterface
     {
         return $this->targetClass = Context::get(ValidateModelInterface::class);
     }
 
     /**
-     * 默认返回的验证规则中文提示
-     * @return string
+     * 默认返回的验证规则中文提示.
      */
     abstract public static function defaultMessage(): string;
 
@@ -51,13 +56,13 @@ abstract class BaseRule implements RuleInterface
     }
 
     /**
-     * @return bool
      * @throws \Exception
+     * @return bool
      */
-    public function checkTargetClass()
+    public function checkTargetClass(): bool
     {
         $targetClass = $this->getTargetClass();
-        if ($targetClass == null || !$targetClass instanceof Model) {
+        if ($targetClass == null || ! $targetClass instanceof Model) {
             throw new \Exception('缺少验证的模型数据');
         }
         return true;

@@ -1,13 +1,18 @@
 <?php
 
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Core\Traits;
 
-use Hyperf\Database\Model\Builder;
-
 /**
- * Trait IdeHelperTrait
- * @package App\Traits
+ * Trait IdeHelperTrait.
  *
  * @method static \Hyperf\Database\Model\Model|static make(array $attributes = [])
  * @method static $this|\Hyperf\Database\Model\Model create(array $attributes = [])
@@ -20,7 +25,7 @@ use Hyperf\Database\Model\Builder;
  * @method static \Hyperf\Database\Model\Model|static first($columns = ['*'])
  * @method static \Hyperf\Database\Model\Model|static firstOrNew(array $attributes, array $values = [])
  * @method static \Hyperf\Database\Model\Model|static firstOrCreate(array $attributes, array $values = [])
- * @method static \Hyperf\Database\Model\Model|mixed|static firstOr($columns = ['*'], Closure $callback = null)
+ * @method static \Hyperf\Database\Model\Model|mixed|static firstOr($columns = ['*'], \Closure $callback = null)
  * @method static \Hyperf\Database\Model\Model|static updateOrCreate(array $attributes, array $values = [])
  * @method static \Hyperf\Database\Model\Model[]|static[] getModels($columns = ['*'])
  * @method static array eagerLoadRelations(array $models)
@@ -31,5 +36,4 @@ use Hyperf\Database\Model\Builder;
  */
 trait IdeHelperTrait
 {
-
 }

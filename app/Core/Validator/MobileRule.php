@@ -1,31 +1,33 @@
 <?php
 
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Core\Validator;
-
 
 use App\Core\Validator\Base\BaseRule;
 use Hyperf\Validation\Validator;
 
 /**
  * 手机号验证规则
- * Class MobileRule
- * @package App\Core\Validator
+ * Class MobileRule.
  */
 class MobileRule extends BaseRule
 {
     /**
-     * 验证规则名称
-     * @return string
+     * 验证规则名称.
      */
     public static function ruleName(): string
     {
         return 'mobile';
     }
 
-    /**
-     * @return string
-     */
     public static function defaultMessage(): string
     {
         return ':attribute 必须为一个有效的手机号码';

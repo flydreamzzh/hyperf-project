@@ -11,5 +11,3 @@ vendor/
 .DS_Store
 *.lock
 .phpunit*
-
-app/Controller/Test/*.php

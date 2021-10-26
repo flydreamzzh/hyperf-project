@@ -5,11 +5,10 @@ declare(strict_types=1);
  * This file is part of Hyperf.
  *
  * @link     https://www.hyperf.io
- * @document https://doc.hyperf.io
+ * @document https://hyperf.wiki
  * @contact  group@hyperf.io
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
-
 namespace App\Core;
 
 use App\Core\Components\Log;
@@ -22,11 +21,9 @@ use Hyperf\Utils\Coroutine;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-
 /**
  * 命令行基础类，加入日志记录
- * Class BaseCommand
- * @package App\Core
+ * Class BaseCommand.
  */
 abstract class BaseCommand extends HyperfCommand
 {
@@ -34,8 +31,9 @@ abstract class BaseCommand extends HyperfCommand
      * @param InputInterface $input
      * @param OutputInterface $output
      * @return int|mixed
+     * @throws \Throwable
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $callback = function () {
             try {
@@ -47,7 +45,7 @@ abstract class BaseCommand extends HyperfCommand
                 Log::get('command')->info($message);
             } catch (\Throwable $exception) {
                 $prefix = $this->getLogPrefix();
-                $message = sprintf('%s[%s] in %s',$exception->getMessage(), $exception->getFile(), $exception->getLine());
+                $message = sprintf('%s[%s] in %s', $exception->getMessage(), $exception->getFile(), $exception->getLine());
                 $message = implode(' | ', [$prefix, $message]);
                 Log::get('command')->error($message);
                 if (! $this->eventDispatcher) {
@@ -71,13 +69,9 @@ abstract class BaseCommand extends HyperfCommand
         return $callback();
     }
 
-    /**
-     * @return string
-     */
-    protected function getLogPrefix()
+    protected function getLogPrefix(): string
     {
         $argc = $this->input->getArguments();
-        $command = implode(' ', $argc);
-        return $command;
+        return implode(' ', $argc);
     }
 }

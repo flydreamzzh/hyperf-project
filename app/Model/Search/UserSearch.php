@@ -1,5 +1,14 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Model\Search;
 
 use App\Core\BaseModel;
@@ -15,10 +24,9 @@ use Hyperf\DbConnection\Db;
  */
 
 /**
- * Class UserSearch
- * @package App\Model\Search
+ * Class UserSearch.
  * @property string $key_ 用户查询关键字
- * @property integer $role 角色ID
+ * @property int $role 角色ID
  * @property string $status 用户状态
  */
 class UserSearch extends BaseModel
@@ -29,7 +37,7 @@ class UserSearch extends BaseModel
     public $fillable = ['key_', 'role', 'status'];
 
     /**
-     * Creates data provider instance with search query applied
+     * Creates data provider instance with search query applied.
      *
      * @param array $params
      *
@@ -41,7 +49,7 @@ class UserSearch extends BaseModel
         $dataProvider = new ActiveDataProvider();
         $administrator_id = config('user.administrator_id');
         $query = null;
-        $this->key_  = $this->key_ ? "%$this->key_%" : $this->key_;
+        $this->key_ = $this->key_ ? "%{$this->key_}%" : $this->key_;
         if (($this->key_ || trim($this->status) != '') && $this->role) {
             $userQuery = User::find()->alias('user')
                 ->select(['user.id', 'username', 'nickname', 'email', 'status', 'pass_status', 'remark', 'user.created_at', 'user.updated_at', 'user.created_by', 'user.updated_by'])
@@ -101,7 +109,6 @@ class UserSearch extends BaseModel
                     ->select(['user_map.id', 'username', 'nickname', 'email', 'status', 'pass_status', 'dis_delete', 'user_map.created_at', 'user_map.updated_at', 'user_map.created_by', 'user_map.updated_by', 'roles' => 'group_concat(name)'])
                     ->leftJoin(['roles' => RbacRole::tableName()], 'roles.id', '=', 'user_map.role_id')
                     ->groupBy('user_map.id');
-
             }
             $dataProvider->getPagination()->setPage(0);
         }

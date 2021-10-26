@@ -1,51 +1,42 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
+namespace App\Core\Components;
 
 namespace App\Core\Components;
 
-
-namespace App\Core\Components;
-
+use App\Constants\StatusCode;
 use App\Core\Traits\HyStaticInstance;
+use Hyperf\Contract\StdoutLoggerInterface;
 use Hyperf\Di\Annotation\Inject;
+use Hyperf\HttpMessage\Cookie\Cookie;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface;
-use Hyperf\HttpMessage\Cookie\Cookie;
-use App\Constants\StatusCode;
-use Hyperf\Utils\Context;
 use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
-use Hyperf\Contract\StdoutLoggerInterface;
 
 /**
- * 请求响应结果
- * @package App\Container
+ * 请求响应结果.
  */
 class Response
 {
-
     use HyStaticInstance;
 
-    /**
-     * @var StdoutLoggerInterface
-     */
-    protected $logger;
-
-    /**
-     * @Inject
-     * @var RequestInterface
-     */
-    protected $request;
-
-    /**
-     * @Inject
-     * @var ResponseInterface
-     */
-    protected $response;
-
     const FORMAT_RAW = 'raw';
+
     const FORMAT_HTML = 'html';
+
     const FORMAT_JSON = 'json';
+
     const FORMAT_JSONP = 'jsonp';
+
     const FORMAT_XML = 'xml';
 
     /**
@@ -122,25 +113,42 @@ class Response
     ];
 
     /**
+     * @var StdoutLoggerInterface
+     */
+    protected $logger;
+
+    /**
+     * @Inject
+     * @var RequestInterface
+     */
+    protected $request;
+
+    /**
+     * @Inject
+     * @var ResponseInterface
+     */
+    protected $response;
+
+    /**
      * success
-     * 返回请求结果
+     * 返回请求结果.
      * @param int $code
      * @param array|string $data
-     * @param string|null $msg
+     * @param string $msg
      * @param string $format
      * @return PsrResponseInterface
      */
-    public function send($code = StatusCode::SUCCESS, $data = [], string $msg = null, $format = Response::FORMAT_JSON)
+    public function send($code = StatusCode::SUCCESS, $data = [], $msg = null, $format = Response::FORMAT_JSON): PsrResponseInterface
     {
-        if (!preg_match("/^(\d)+$/", $code)) {
+        if (! is_numeric($code)) {
             $msg = $code;
             $code = StatusCode::ERR_OTHER_EXCEPTION;
         }
         $msg = $msg ?? StatusCode::instance()->getMessage($code);
         $data = [
-            'code' => (int)$code,
+            'code' => (int) $code,
             'msg' => $msg,
-            'data' => $data
+            'data' => $data,
         ];
         if (in_array($format, [Response::FORMAT_JSON, Response::FORMAT_XML, Response::FORMAT_RAW])) {
             $response = $this->response->{$format}($data);
@@ -150,77 +158,35 @@ class Response
         return $response;
     }
 
-    public function withStatus($code)
+    public function withStatus($code): Response
     {
         $this->response->withStatus($code);
         return $this;
     }
 
-    /**
-     * @param array $data
-     * @return PsrResponseInterface
-     */
-    public function json(array $data)
+    public function json(array $data): PsrResponseInterface
     {
         return $this->response->json($data);
     }
 
-    /**
-     * @param array $data
-     * @return PsrResponseInterface
-     */
-    public function xml(array $data)
+    public function xml(array $data): PsrResponseInterface
     {
         return $this->response->xml($data);
     }
 
-    /**
-     * @param string $url
-     * @param string $schema
-     * @param int $status
-     * @return PsrResponseInterface
-     */
-    public function redirect(string $url, string $schema = 'http', int $status = 302)
+    public function redirect(string $url, string $schema = 'http', int $status = 302): PsrResponseInterface
     {
         return $this->response->redirect($url, $status, $schema);
     }
 
-    /**
-     * @param string $file
-     * @param string $name
-     * @return PsrResponseInterface
-     */
-    public function download(string $file, string $name = '')
+    public function download(string $file, string $name = ''): PsrResponseInterface
     {
-        return $this->response->redirect($file, $name);
+        return $this->response->download($file, $name);
     }
 
-    /**
-     * @param string $name
-     * @param string $value
-     * @param int $expire
-     * @param string $path
-     * @param string $domain
-     * @param bool $secure
-     * @param bool $httpOnly
-     * @param bool $raw
-     * @param string|null $sameSite
-     */
-    public function cookie(string $name, string $value = '', $expire = 0, string $path = '/', string $domain = '', bool $secure = false, bool $httpOnly = true, bool $raw = false, ?string $sameSite = null)
+    public function withCookie(Cookie $cookie): Response
     {
-        // convert expiration time to a Unix timestamp
-        if ($expire instanceof \DateTimeInterface) {
-            $expire = $expire->format('U');
-        } elseif (!is_numeric($expire)) {
-            $expire = strtotime($expire);
-            if ($expire === false) {
-                throw new \RuntimeException('The cookie expiration time is not valid.');
-            }
-        }
-
-        $cookie = new Cookie($name, $value, $expire, $path, $domain, $secure, $httpOnly, $raw, $sameSite);
-        $response = $this->response->withCookie($cookie);
-        Context::set(PsrResponseInterface::class, $response);
-        return;
+        $this->response->withCookie($cookie);
+        return $this;
     }
 }

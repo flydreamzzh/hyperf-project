@@ -1,6 +1,14 @@
 <?php
 
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Core\Exception;
 
 /**
@@ -13,16 +21,15 @@ namespace App\Core\Exception;
  * perform the action, consider using a 403 [[ForbiddenHttpException]]
  * or 404 [[NotFoundHttpException]] instead.
  *
- * @link https://tools.ietf.org/html/rfc7235#section-3.1
- * @author Dan Schmidt <danschmidt5189@gmail.com>
+ * @see https://tools.ietf.org/html/rfc7235#section-3.1
  */
 class UnauthorizedHttpException extends HttpException
 {
     /**
      * Constructor.
-     * @param string $message error message
+     * @param null $message error message
      * @param int $code error code
-     * @param \Exception $previous The previous exception used for the exception chaining.
+     * @param null|\Exception $previous the previous exception used for the exception chaining
      */
     public function __construct($message = null, $code = 0, \Exception $previous = null)
     {

@@ -1,24 +1,31 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Model\Form;
-
-
 
 use App\Core\BaseModel;
 use App\Model\User;
 
 /**
- * Password reset form
+ * Password reset form.
  * @property string $password
  */
 class ResetPasswordForm extends BaseModel
 {
+    public $fillable = ['password'];
+
     /**
      * @var User
      */
     private $_user;
-
-    public $fillable = ['password'];
 
     /**
      * Creates a form model given a token.
@@ -27,13 +34,13 @@ class ResetPasswordForm extends BaseModel
      * @param array $config name-value pairs that will be used to initialize the object properties
      * @throws \Exception if token is empty or not valid
      */
-    public function __construct($token, $config = [])
+    public function __construct(string $token, $config = [])
     {
-        if (empty($token) || !is_string($token)) {
+        if (empty($token) || ! is_string($token)) {
             throw new \Exception('Password reset token cannot be blank.');
         }
         $this->_user = User::findByPasswordResetToken($token);
-        if (!$this->_user) {
+        if (! $this->_user) {
             throw new \Exception('Wrong password reset token.');
         }
         parent::__construct($config);
@@ -51,10 +58,10 @@ class ResetPasswordForm extends BaseModel
     }
 
     /**
-     * @return bool
      * @throws \Exception
+     * @return bool
      */
-    public function resetPassword()
+    public function resetPassword(): bool
     {
         $user = $this->_user;
         $user->setPassword($this->password);

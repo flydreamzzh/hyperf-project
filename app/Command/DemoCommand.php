@@ -1,12 +1,18 @@
 <?php
 
 declare(strict_types=1);
-
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Command;
 
 use App\Core\BaseCommand;
 use Hyperf\Command\Annotation\Command;
-use Hyperf\Di\Annotation\Inject;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 
@@ -16,7 +22,7 @@ use Symfony\Component\Console\Input\InputOption;
 class DemoCommand extends BaseCommand
 {
     /**
-     * 执行的命令行
+     * 执行的命令行.
      *
      * @var string
      */
@@ -38,7 +44,7 @@ class DemoCommand extends BaseCommand
     {
         return [
             ['name', InputArgument::OPTIONAL, '这是一个名字'],
-            ['name2', InputArgument::OPTIONAL, '这是一个备用名字']
+            ['name2', InputArgument::OPTIONAL, '这是一个备用名字'],
         ];
     }
 }

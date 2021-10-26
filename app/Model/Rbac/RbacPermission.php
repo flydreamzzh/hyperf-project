@@ -1,7 +1,14 @@
 <?php
 
-declare (strict_types=1);
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Model\Rbac;
 
 use App\Core\Components\Builder;
@@ -26,35 +33,36 @@ class RbacPermission extends Model
     public $timestamps = false;
 
     /**
+     * 权限模块,不归于用户权限分配范围内.
+     * @var string
+     */
+    public static $rbac_module = 'rbac';
+
+    /**
+     * @var array 权限路由，表单辅助保存
+     */
+    public $routes = [];
+
+    /**
      * The table associated with the model.
      *
      * @var string
      */
     protected $table = 'rbac_permissions';
+
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = ['name', 'menu_id', 'description', 'system', 'home_page', 'routes'];
+
     /**
      * The attributes that should be cast to native types.
      *
      * @var array
      */
     protected $casts = ['id' => 'integer', 'menu_id' => 'integer', 'system' => 'integer', 'home_page' => 'integer'];
-
-
-    /**
-     * 权限模块,不归于用户权限分配范围内
-     * @var string
-     */
-    public static $rbac_module = "rbac";
-
-    /**
-     * @var array 权限路由，表单辅助保存
-     */
-    public $routes = [];
 
     /**
      * {@inheritdoc}
@@ -66,15 +74,14 @@ class RbacPermission extends Model
             [['menu_id', 'system', 'home_page'], 'integer'],
             [['name'], 'max:40'],
             [['description'], 'max:255'],
-//            [['menu_id'], 'exist', 'skipOnError' => true, 'targetClass' => Menu::className(), 'targetAttribute' => ['menu_id' => 'id']],
+            //            [['menu_id'], 'exist', 'skipOnError' => true, 'targetClass' => Menu::className(), 'targetAttribute' => ['menu_id' => 'id']],
         ];
     }
-
 
     /**
      * {@inheritdoc}
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'name' => '权限名称',
@@ -85,15 +92,14 @@ class RbacPermission extends Model
         ];
     }
 
-
     /**
-     * 保存权限及其路由
+     * 保存权限及其路由.
      * @return bool
      */
     public function saveWithRoutes()
     {
         $this->routes = array_filter($this->routes);
-        if (!$this->routes) {
+        if (! $this->routes) {
             $this->addError('routes', '权限路由不能为空');
             return false;
         }
@@ -114,8 +120,8 @@ class RbacPermission extends Model
                     foreach ($create_routes as $route) {
                         $data[] = array_combine(['route', 'permission_id'], [$route, $this->id]);
                     }
-                    $create_flag = Db::table(RbacPermissionRoute::tableName())->insert($data);//添加新的权限
-                    if (!$create_flag) {
+                    $create_flag = Db::table(RbacPermissionRoute::tableName())->insert($data); //添加新的权限
+                    if (! $create_flag) {
                         $this->addError('routes', '路由已存在');
                     }
                 }
@@ -143,11 +149,11 @@ class RbacPermission extends Model
      *      先直接查找完整路径，若发现此路由已经配置了权限，则直接判断该用户是否拥有此权限，拥有则通过，相反则不通过；
      *      若此路由没有被配置权限，则查找【/admin/assignment/*】路由是否被配置权限，若被配置，按照以上规则判断；
      *      以此类推，上述路由都不存在，则最终查找【/admin/*】。
-     * 判断某用户是否能使用某路由权限
+     * 判断某用户是否能使用某路由权限.
      * @param string $user_id
      * @param string $route
      * @param array $except 不用检测权限的
-     * @param boolean $defaultAccess 不存在权限的路由  是否 直接放通。
+     * @param bool $defaultAccess 不存在权限的路由  是否 直接放通
      * @return bool
      */
     public static function can($user_id, $route, $except = [], $defaultAccess = false)
@@ -164,7 +170,7 @@ class RbacPermission extends Model
         $masterModules = Menu::find()->select(['module'])->where(['only_master' => 1])->whereRaw('module is not null')->get()->toArray();
         $masterModules = ArrayHelper::getColumn($masterModules, 'module');
         $masterModules = array_filter($masterModules);
-        if (!RbacUserRole::isMaster($user_id)) {
+        if (! RbacUserRole::isMaster($user_id)) {
             foreach ($masterModules as $masterModule) {
                 $match = array_filter(explode('/', $masterModule));
                 $matchModule = implode('/', $match);
@@ -177,45 +183,45 @@ class RbacPermission extends Model
         $permission = self::getPermissionByRoute($route);
         if ($permission) {
             return RbacUserRole::isHasPermissionForUser($user_id, $permission->id);
-        } else {
-            $data = explode('/', $route);
-            $data = array_values(array_filter($data));
-            for ($i = count($data) - 1; $i > 0; $i--) {
-                $arr = [""];
-                for ($j = 0; $j < $i; $j++) {
-                    $arr[] = $data[$j];
-                }
-                $arr[] = "*";
-                $url = implode('/', $arr);
-                $permission = self::getPermissionByRoute($url);
-                if ($permission) {
-                    return RbacUserRole::isHasPermissionForUser($user_id, $permission->id);
-                }
+        }
+        $data = explode('/', $route);
+        $data = array_values(array_filter($data));
+        for ($i = count($data) - 1; $i > 0; --$i) {
+            $arr = [''];
+            for ($j = 0; $j < $i; ++$j) {
+                $arr[] = $data[$j];
+            }
+            $arr[] = '*';
+            $url = implode('/', $arr);
+            $permission = self::getPermissionByRoute($url);
+            if ($permission) {
+                return RbacUserRole::isHasPermissionForUser($user_id, $permission->id);
             }
         }
+
         return $defaultAccess;
     }
 
     /**
-     * 判断路由是否直接通过权限
+     * 判断路由是否直接通过权限.
      * @param string $route
      * @param array $except
      * @return bool
      */
     public static function isExcept($route, $except)
     {
-        if (!$except) {
+        if (! $except) {
             return false;
         }
-        if (!in_array($route, $except)) {
+        if (! in_array($route, $except)) {
             $data = explode('/', $route);
             $data = array_values(array_filter($data));
-            for ($i = count($data) - 1; $i > 0; $i--) {
-                $arr = [""];
-                for ($j = 0; $j < $i; $j++) {
+            for ($i = count($data) - 1; $i > 0; --$i) {
+                $arr = [''];
+                for ($j = 0; $j < $i; ++$j) {
                     $arr[] = $data[$j];
                 }
-                $arr[] = "*";
+                $arr[] = '*';
                 $url = implode('/', $arr);
                 if (in_array($url, $except)) {
                     return true;
@@ -226,9 +232,8 @@ class RbacPermission extends Model
         return true;
     }
 
-
     /**
-     * 用户能否使用某菜单
+     * 用户能否使用某菜单.
      * @param string $user_id
      * @param string $menu_id
      * @return bool
@@ -239,7 +244,7 @@ class RbacPermission extends Model
             return true;
         }
         $menu = Menu::findOne($menu_id);
-        if ($menu && $menu->only_master && !RbacUserRole::isMaster($user_id)) {
+        if ($menu && $menu->only_master && ! RbacUserRole::isMaster($user_id)) {
             return false;
         }
         if ($permission = self::findOne(['menu_id' => $menu_id, 'home_page' => 1])) {
@@ -249,27 +254,26 @@ class RbacPermission extends Model
     }
 
     /**
-     * 获取某路由的权限
+     * 获取某路由的权限.
      * @param string $route
      * @return RbacPermission
      */
     public static function getPermissionByRoute($route)
     {
         /** @var RbacPermission $permission */
-        $permission = self::find()->alias('permission')->where(['permission_routes.route' => $route])
+        return self::find()->alias('permission')->where(['permission_routes.route' => $route])
             ->leftJoin(['permission_routes' => RbacPermissionRoute::tableName()], 'permission_routes.permission_id', '=', 'permission.id')
             ->first();
-        return $permission;
     }
 
     /**
-     * 获取菜单权限列表
-     * @param boolean $only_master 不显示仅超管可看的菜单，主要用作权限分配界面
+     * 获取菜单权限列表.
+     * @param bool $only_master 不显示仅超管可看的菜单，主要用作权限分配界面
      * @return array
      */
     public static function getMenuPermissions($only_master = false)
     {
-        if (!$only_master) {
+        if (! $only_master) {
             $menus = Menu::find()->whereNull('parent_id')->orderBy('sort')->get();
         } else {
             $menus = Menu::find()->whereNull('parent_id')->where(['only_master' => 0])->orderBy('sort')->get()->toArray();
@@ -289,7 +293,7 @@ class RbacPermission extends Model
             if ($children = self::getMenuChildren($menu['id'], $only_master)) {
                 $menus[$i]['children'] = $children;
             } else {
-                if (!$menuPermission) {
+                if (! $menuPermission) {
                     unset($menus[$i]);
                 }
             }
@@ -298,14 +302,14 @@ class RbacPermission extends Model
     }
 
     /**
-     * 递归菜单权限
+     * 递归菜单权限.
      * @param string $menu_id
-     * @param boolean $only_master 不显示仅超管可看的菜单，主要用作权限分配界面
+     * @param bool $only_master 不显示仅超管可看的菜单，主要用作权限分配界面
      * @return array
      */
     public static function getMenuChildren($menu_id, $only_master = false)
     {
-        if (!$only_master) {
+        if (! $only_master) {
             $menus = Menu::find()->where(['parent_id' => $menu_id])->orderBy('sort')->get()->toArray();
         } else {
             $menus = Menu::find()->where(['parent_id' => $menu_id])->where(['only_master' => 0])->orderBy('sort')->get()->toArray();
@@ -325,7 +329,7 @@ class RbacPermission extends Model
                 if ($children = self::getMenuChildren($menu['id'], $only_master)) {
                     $menus[$i]['children'] = $children;
                 } else {
-                    if (!$menuPermission) {
+                    if (! $menuPermission) {
                         unset($menus[$i]);
                     }
                 }
@@ -335,24 +339,23 @@ class RbacPermission extends Model
     }
 
     /**
-     * 获取所有菜单的权限
+     * 获取所有菜单的权限.
      * @param string $menuId
      * @return static[]
      */
     public static function getPermissionsByMenu($menuId)
     {
-        $permissions = self::findAll(['menu_id' => $menuId, 'home_page' => 0]);
-        return $permissions;
+        return self::findAll(['menu_id' => $menuId, 'home_page' => 0]);
     }
 
     /**
-     * 初始化菜单首页权限，未设置真正路由权限
+     * 初始化菜单首页权限，未设置真正路由权限.
      */
     public static function initPermissions()
     {
         /** @var Menu $menus 获取所有底层菜单 */
         $menus = Menu::find()->alias('children')->whereNotExists(function (Builder $query) {
-            $query->whereColumn('menus.parent_id', '=', 'children.id')->from("menus");
+            $query->whereColumn('menus.parent_id', '=', 'children.id')->from('menus');
         })->get()->toArray();
         /** @var Menu $menu */
         foreach ($menus as $menu) {
@@ -361,7 +364,7 @@ class RbacPermission extends Model
             if ($permissions) {
                 $permission = $permissions[0];
                 if (count($permissions) > 1) {
-                    RbacPermission::deleteAll([["menu_id" => $menu['id']], ['id', '>', $permission['id']], ['home_page' => 1]]); //只需要第一个先被创建的权限，其他删除
+                    RbacPermission::deleteAll([['menu_id' => $menu['id']], ['id', '>', $permission['id']], ['home_page' => 1]]); //只需要第一个先被创建的权限，其他删除
                 }
             } else {
                 //100000开始为菜单首页权限

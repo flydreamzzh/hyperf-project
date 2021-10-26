@@ -1,8 +1,15 @@
 <?php
 
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Core\Helpers;
-
 
 use Hyperf\Utils\Arr;
 
@@ -20,14 +27,14 @@ class ArrayHelper extends Arr
      * [[ReplaceArrayValue]] to force replace former value instead of recursive merging.
      * @param array $a array to be merged to
      * @param array $b array to be merged from. You can specify additional
-     * arrays via third argument, fourth argument etc.
+     *                 arrays via third argument, fourth argument etc.
      * @return array the merged array (the original arrays are not changed.)
      */
-    public static function merge($a, $b)
+    public static function merge(array $a, array $b, bool $unique = true): array
     {
         $args = func_get_args();
         $res = array_shift($args);
-        while (!empty($args)) {
+        while (! empty($args)) {
             foreach (array_shift($args) as $k => $v) {
                 if (is_int($k)) {
                     if (array_key_exists($k, $res)) {
@@ -77,12 +84,12 @@ class ArrayHelper extends Arr
      * ```
      *
      * @param array|object $array array or object to extract value from
-     * @param string|\Closure|array $key key name of the array element, an array of keys or property name of the object,
-     * or an anonymous function returning the value. The anonymous function signature should be:
-     * `function($array, $defaultValue)`.
-     * The possibility to pass an array of keys is available since version 2.0.4.
+     * @param array|\Closure|string $key key name of the array element, an array of keys or property name of the object,
+     *                                   or an anonymous function returning the value. The anonymous function signature should be:
+     *                                   `function($array, $defaultValue)`.
+     *                                   The possibility to pass an array of keys is available since version 2.0.4.
      * @param mixed $default the default value to be returned if the specified array key does not exist. Not used when
-     * getting value from an object.
+     *                       getting value from an object.
      * @return mixed the value of the element if found, default value otherwise
      */
     public static function getValue($array, $key, $default = null)
@@ -111,8 +118,9 @@ class ArrayHelper extends Arr
         if (is_object($array)) {
             // this is expected to fail if the property does not exist, or __get() is not implemented
             // it is not reliably possible to check whether a property is accessible beforehand
-            return $array->$key;
-        } elseif (is_array($array)) {
+            return $array->{$key};
+        }
+        if (is_array($array)) {
             return (isset($array[$key]) || array_key_exists($key, $array)) ? $array[$key] : $default;
         }
 
@@ -140,12 +148,12 @@ class ArrayHelper extends Arr
      * ```
      *
      * @param array $array
-     * @param int|string|\Closure $name
+     * @param \Closure|int|string $name
      * @param bool $keepKeys whether to maintain the array keys. If false, the resulting array
-     * will be re-indexed with integers.
+     *                       will be re-indexed with integers.
      * @return array the list of column values
      */
-    public static function getColumn($array, $name, $keepKeys = true)
+    public static function getColumn(array $array, $name, $keepKeys = true): array
     {
         $result = [];
         if ($keepKeys) {
@@ -163,22 +171,22 @@ class ArrayHelper extends Arr
 
     /**
      * ------------------------------------------
-     * 把返回的数据集转换成Tree
+     * 把返回的数据集转换成Tree.
      * @param array $list 要转换的数据集
      * @param string $pk 主键
      * @param string $pid parent标记字段
      * @param string $child
      * @param int $root
      * @return array
-     * ------------------------------------------
+     *               ------------------------------------------
      */
-    public static function list_to_tree($list, $pk = 'id', $pid = 'pid', $child = '_child', $root = 0)
+    public static function ListToTree(array $list, $pk = 'id', $pid = 'pid', $child = '_child', $root = 0): array
     {
         // 创建Tree
         $tree = [];
         if (is_array($list)) {
             // 创建基于主键的数组引用
-            $refer = array();
+            $refer = [];
             foreach ($list as $key => $data) {
                 $refer[$data[$pk]] = &$list[$key];
             }
@@ -200,15 +208,15 @@ class ArrayHelper extends Arr
 
     /**
      * ---------------------------------------------------
-     * 将list_to_tree的树还原成列表
-     * @param  array $tree 原来的树
-     * @param  string $child 孩子节点的键
-     * @param  string $order 排序显示的键，一般是主键 升序排列
-     * @param  array $list 过渡用的中间数组，
-     * @return array        返回排过序的列表数组
-     * ---------------------------------------------------
+     * 将treeToList的树还原成列表.
+     * @param array $tree 原来的树
+     * @param string $child 孩子节点的键
+     * @param string $order 排序显示的键，一般是主键 升序排列
+     * @param array $list 过渡用的中间数组，
+     * @return array 返回排过序的列表数组
+     *               ---------------------------------------------------
      */
-    public static function tree_to_list($tree, $child = '_child', $order = 'id', &$list = [])
+    public static function treeToList($tree, $child = '_child', $order = 'id', &$list = [])
     {
         if (is_array($tree)) {
             $refer = [];
@@ -216,29 +224,28 @@ class ArrayHelper extends Arr
                 $reffer = $value;
                 if (isset($reffer[$child])) {
                     unset($reffer[$child]);
-                    static::tree_to_list($value[$child], $child, $order, $list);
+                    static::treeToList($value[$child], $child, $order, $list);
                 }
                 $list[] = $reffer;
             }
-            $list = static::list_sort_by($list, $order, $sortby = 'asc');
+            $list = static::listSortBy($list, $order, $sortby = 'asc');
         }
         return $list;
     }
 
     /**
      * --------------------------------------------------
-     * 对查询结果集进行排序
-     * @access public
+     * 对查询结果集进行排序.
      * @param array $list 查询结果
      * @param string $field 排序的字段名
      * @param string $sortby 排序类型 asc正向排序 desc逆向排序 nat自然排序
-     * @return array|boolean
-     * --------------------------------------------------
+     * @return array|bool
+     *                    --------------------------------------------------
      */
-    public static function list_sort_by($list, $field, $sortby = 'asc')
+    public static function listSortBy($list, $field, $sortby = 'asc')
     {
         if (is_array($list)) {
-            $refer = $resultSet = array();
+            $refer = $resultSet = [];
             foreach ($list as $i => $data) {
                 $refer[$i] = &$data[$field];
             }
@@ -265,18 +272,18 @@ class ArrayHelper extends Arr
 
     /**
      * ---------------------------------------
-     * 递归方式将tree结构转化为 表单中select可使用的格式
-     * @param  array $tree 树型结构的数组
-     * @param  string $title 将格式化的字段
-     * @param  int $level 当前循环的层次,从0开始
+     * 递归方式将tree结构转化为 表单中select可使用的格式.
+     * @param array $tree 树型结构的数组
+     * @param string $title 将格式化的字段
+     * @param int $level 当前循环的层次,从0开始
      * @return array
-     * ---------------------------------------
+     *               ---------------------------------------
      */
-    public static function format_tree($tree, $title = 'title', $level = 0)
+    public static function formatTree(array $tree, $title = 'title', $level = 0): array
     {
         static $list;
         /* 按层级格式的字符串 */
-        $tmp_str = str_repeat("　　", $level) . "└";
+        $tmp_str = str_repeat('　　', $level) . '└';
         $level == 0 && $tmp_str = '';
 
         foreach ($tree as $key => $value) {
@@ -288,50 +295,20 @@ class ArrayHelper extends Arr
 
             $list[] = $arr;
             if (array_key_exists('_child', $value)) {
-                static::format_tree($value['_child'], $title, $level + 1);
+                static::formatTree($value['_child'], $title, $level + 1);
             }
         }
         return $list ?: [];
     }
 
     /**
-     * ---------------------------------------
-     * 获取dropDownList的data数据，主要是二级栏目及以上数据，一级栏目可以用ArrayHelper::map()生成
-     * 示例：ArrayHelper::listDataLevel(\backend\models\Menu::find()->asArray()->all(), 'id', 'title', 'id', 'pid')
-     * @param $list array 由findAll或->all()生成的数据
-     * @param $key string dropDownList的data数据的key
-     * @param $value string dropDownList的data数据的value
-     * @param string $pk 主键字段名
-     * @param string $pid 父id字段名
-     * @param int $root 根ID
-     * @return array
-     * ---------------------------------------
-     */
-    public static function listDataLevel($list, $key, $value, $pk = 'id', $pid = 'pid', $root = 0)
-    {
-        if (!is_array($list)) {
-            return [];
-        }
-        $_tmp = $list;
-        /* 判断$list是否由findAll生成的数据 */
-        if (array_shift($_tmp) instanceof \yii\base\Model) {
-            $list = array_map(function ($record) {
-                return $record->attributes;
-            }, $list);
-        }
-        unset($_tmp);
-        $tree = static::list_to_tree($list, $pk, $pid, '_child', $root);
-        return static::map(static::format_tree($tree, $value), $key, $value);
-    }
-
-    /**
-     * 将数组转换成字符串
-     * @param string|array $arr
+     * 将数组转换成字符串.
+     * @param array|string $arr
      * @param bool $hasKey
      * @param string $split
      * @return string
      */
-    public static function arrayToString($arr, $hasKey = false, $split = "<br>")
+    public static function arrayToString($arr, $hasKey = false, $split = '<br>')
     {
         if (is_array($arr)) {
             $string = '';
@@ -344,7 +321,7 @@ class ArrayHelper extends Arr
                     $i > 0 && $string .= $split;
                     $string .= self::arrayToString($data, $hasKey);
                 }
-                $i++;
+                ++$i;
             }
             return $string;
         }
@@ -352,14 +329,14 @@ class ArrayHelper extends Arr
     }
 
     /**
-     * PHP stdClass Object转array
+     * PHP stdClass Object转array.
      * @param $array
      * @return array
      */
-    public static function objectToArray($array)
+    public static function objectToArray($array): array
     {
         if (is_object($array)) {
-            $array = (array)$array;
+            $array = (array) $array;
         }
         if (is_array($array)) {
             foreach ($array as $key => $value) {
@@ -376,7 +353,7 @@ class ArrayHelper extends Arr
      *          'value' => '192.168.1.2'
      *      ],
      *      ````````````
-     * ]
+     * ].
      *
      * 转换成：
      * [
@@ -385,7 +362,7 @@ class ArrayHelper extends Arr
      * @param $arr array 将form表单格式化成数组
      * @return array
      */
-    public static function serializeArray($arr)
+    public static function serializeArray(array $arr): array
     {
         $data = [];
         foreach ($arr as $item) {
@@ -393,5 +370,4 @@ class ArrayHelper extends Arr
         }
         return $data;
     }
-
 }

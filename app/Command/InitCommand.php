@@ -1,7 +1,14 @@
 <?php
 
 declare(strict_types=1);
-
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Command;
 
 use App\Core\BaseCommand;
@@ -9,7 +16,6 @@ use App\Core\Helpers\ArrayHelper;
 use App\Model\Menu;
 use App\Model\Rbac\RbacPermission;
 use App\Model\Rbac\RbacPermissionRoute;
-use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\DbConnection\Db;
 use Psr\Container\ContainerInterface;
@@ -24,6 +30,18 @@ class InitCommand extends BaseCommand
      * @var ContainerInterface
      */
     protected $container;
+
+    /**
+     * 菜单数据.
+     * @var array
+     */
+    private $menuPath = [
+        'app/Constants/Authority/menus.php',
+    ];
+
+    private $permissionPath = [
+        'app/Constants/Authority/Permission/*\.php',
+    ];
 
     public function __construct(ContainerInterface $container)
     {
@@ -46,7 +64,6 @@ class InitCommand extends BaseCommand
                 $this->warn('不存在当前类型的初始化');
                 break;
         }
-
     }
 
     protected function getArguments()
@@ -57,15 +74,7 @@ class InitCommand extends BaseCommand
     }
 
     /**
-     * 菜单数据
-     * @var array
-     */
-    private $menuPath = [
-        'app/Constants/Authority/menus.php',
-    ];
-
-    /**
-     * 初始化菜单数据
+     * 初始化菜单数据.
      */
     private function initMenus()
     {
@@ -84,12 +93,8 @@ class InitCommand extends BaseCommand
         $this->line('菜单初始化完成。', 'info');
     }
 
-    private $permissionPath = [
-        'app/Constants/Authority/Permission/*\.php',
-    ];
-
     /**
-     * 初始化权限数据
+     * 初始化权限数据.
      */
     private function initPermission()
     {

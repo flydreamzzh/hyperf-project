@@ -1,7 +1,14 @@
 <?php
 
-declare (strict_types=1);
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Model\Rbac;
 
 use App\Core\Helpers\ArrayHelper;
@@ -26,19 +33,20 @@ class RbacUserRole extends Model
      * @var string
      */
     protected $table = 'rbac_user_roles';
+
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = ['user_id', 'role_id'];
+
     /**
      * The attributes that should be cast to native types.
      *
      * @var array
      */
     protected $casts = ['id' => 'integer', 'user_id' => 'integer', 'role_id' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime'];
-
 
     /**
      * {@inheritdoc}
@@ -51,15 +59,15 @@ class RbacUserRole extends Model
             [['created_at', 'updated_at'], 'safe'],
             [['created_by', 'updated_by'], 'string', 'max' => 64],
             [['user_id', 'role_id'], 'unique_c:user_id&role_id'],
-//            [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
-//            [['role_id'], 'exist', 'skipOnError' => true, 'targetClass' => RbacRole::className(), 'targetAttribute' => ['role_id' => 'id']],
+            //            [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
+            //            [['role_id'], 'exist', 'skipOnError' => true, 'targetClass' => RbacRole::className(), 'targetAttribute' => ['role_id' => 'id']],
         ];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'created_at' => '创建时间',
@@ -70,7 +78,7 @@ class RbacUserRole extends Model
     }
 
     /**
-     * 判断该用户是否超级管理员
+     * 判断该用户是否超级管理员.
      * @param $user_id
      * @return bool
      */
@@ -88,64 +96,60 @@ class RbacUserRole extends Model
     }
 
     /**
-     * 获取某用户的角色【主键】组
+     * 获取某用户的角色【主键】组.
      * @param string $user_id
      * @return array
      */
     public static function getRoleIdsByUser($user_id)
     {
         $roles = RbacUserRole::find()->where(['user_id' => $user_id])->get()->toArray();
-        $roleIds = ArrayHelper::getColumn($roles, 'role_id');
-        return $roleIds;
+        return ArrayHelper::getColumn($roles, 'role_id');
     }
 
     /**
-     * 获取某用户的角色【对象】组
+     * 获取某用户的角色【对象】组.
      * @param string $user_id
      * @return RbacRole[]
      */
     public static function getRolesByUser($user_id)
     {
         /** @var RbacRole[] $roles */
-        $roles = RbacRole::find()
+        return RbacRole::find()
             ->alias('roles')
             ->where(['user_roles.user_id' => $user_id])
             ->leftJoin(['user_roles' => RbacUserRole::tableName()], 'user_roles.role_id', '=', 'roles.id')
             ->distinct()
             ->get();
-        return $roles;
     }
 
     /**
-     * 获取某角色的所有用户ID
+     * 获取某角色的所有用户ID.
      * @param string $role_id
      * @return array
      */
     public static function getUserIdsByRole($role_id)
     {
         $users = RbacUserRole::find()->where(['role_id' => $role_id])->get()->toArray();
-        $userIds = ArrayHelper::getColumn($users, 'user_id');
-        return $userIds;
+        return ArrayHelper::getColumn($users, 'user_id');
     }
 
     /**
-     * 获取某角色的所有用户
+     * 获取某角色的所有用户.
      * @param string $role_id
      * @return \Hyperf\Utils\Collection
      */
     public static function getUsersByRole($role_id)
     {
-        $users = User::find()
+        return User::find()
             ->alias('user')
             ->where(['user_roles.role_id' => $role_id])
             ->leftJoin(['user_roles' => RbacUserRole::tableName()], 'user_roles.user_id', '=', 'user.id')
             ->distinct()
             ->get();
-        return $users;
     }
 
     /**
-     * 获取没有授权的用户，前50行数据
+     * 获取没有授权的用户，前50行数据.
      * @param $role_id
      * @param string $name
      * @return array
@@ -166,32 +170,30 @@ class RbacUserRole extends Model
     }
 
     /**
-     * 获取某用户的权限【主键】组
+     * 获取某用户的权限【主键】组.
      * @param $user_id string
      * @return array
      */
     public static function getPermissionIdsByUser($user_id)
     {
         $role_ids = self::getRoleIdsByUser($user_id);
-        $permissionIds = RbacRolePermission::getPermissionIdsByRole($role_ids);
-        return $permissionIds;
+        return RbacRolePermission::getPermissionIdsByRole($role_ids);
     }
 
     /**
-     * 获取某用户的权限【对象】组
+     * 获取某用户的权限【对象】组.
      * @param $user_id string
      * @return RbacPermission[]
      */
     public static function getPermissionsByUser($user_id)
     {
         $role_ids = self::getRoleIdsByUser($user_id);
-        $permissions = RbacRolePermission::getPermissionsByRole($role_ids);
-        return $permissions;
+        return RbacRolePermission::getPermissionsByRole($role_ids);
     }
 
     /**
-     *  获取某用户 是否 拥有某权限
-     * @param string|array $user_id
+     *  获取某用户 是否 拥有某权限.
+     * @param array|string $user_id
      * @param string $permissionId
      * @return bool
      */
@@ -202,9 +204,9 @@ class RbacUserRole extends Model
     }
 
     /**
-     * 为某用户设置 角色 或 角色组
+     * 为某用户设置 角色 或 角色组.
      * @param string $user_id
-     * @param string|array $roleIds
+     * @param array|string $roleIds
      * @return bool
      */
     public static function setRoles($user_id, $roleIds)
@@ -219,20 +221,20 @@ class RbacUserRole extends Model
         try {
             $delete_flag = true;
             if ($delete_ids) {
-                $delete_flag = self::deleteAll(['user_id' => $user_id, 'role_id' => $delete_ids]) ? true : false;//清除不再拥有的权限
+                $delete_flag = self::deleteAll(['user_id' => $user_id, 'role_id' => $delete_ids]) ? true : false; //清除不再拥有的权限
             }
             if ($delete_flag && $create_ids) {
                 $data = [];
                 foreach ($create_ids as $id) {
                     $data[] = array_combine(['user_id', 'role_id'], [$user_id, $id]);
                 }
-                $bool = Db::table(RbacUserRole::tableName())->insert($data);//添加新的权限
-                if (!$bool) {
+                $bool = Db::table(RbacUserRole::tableName())->insert($data); //添加新的权限
+                if (! $bool) {
                     Db::rollBack();
                     return false;
                 }
             }
-           DB::commit();
+            DB::commit();
             return true;
         } catch (\Exception $e) {
             Db::rollBack();
@@ -241,29 +243,25 @@ class RbacUserRole extends Model
     }
 
     /**
-     * 角色分配到用户
+     * 角色分配到用户.
      * @param $role_id
-     * @param array $userIds
      * @return bool
      */
     public static function setRoleUsers($role_id, array $userIds)
     {
-
         if ($userIds) {
             $data = [];
             foreach ($userIds as $user) {
                 $data[] = array_combine(['role_id', 'user_id'], [$role_id, $user]);
             }
-            $bool = Db::table(RbacUserRole::tableName())->insert($data);
-            return $bool;
+            return Db::table(RbacUserRole::tableName())->insert($data);
         }
         return true;
     }
 
     /**
-     * 移除授予某角色的用户
+     * 移除授予某角色的用户.
      * @param string $role_id
-     * @param array $userIds
      * @return bool|int
      */
     public static function removeRoleUsers($role_id, array $userIds)
@@ -275,7 +273,7 @@ class RbacUserRole extends Model
     }
 
     /**
-     * 初始化超级管理员
+     * 初始化超级管理员.
      * @throws \Exception
      */
     public static function initAdministrator()
@@ -283,9 +281,9 @@ class RbacUserRole extends Model
         $administrator_id = config('user.administrator_id') ?? 1;
         $userRole = RbacUserRole::find()->alias('user_roles')->where(['user_roles.user_id' => $administrator_id, 'roles.master' => 1])
             ->leftJoin(['roles' => RbacRole::tableName()], 'roles.id', '=', 'user_roles.role_id')->first();
-        if (!$userRole) {
+        if (! $userRole) {
             $user = User::findOne(['id' => $administrator_id]);
-            if (!$user) {
+            if (! $user) {
                 $user = new User();
                 $user->id = 1;
                 $user->username = 'admin';
@@ -298,7 +296,7 @@ class RbacUserRole extends Model
             if ($user->exists()) {
                 /** @var RbacUserRole $master */
                 $master = RbacRole::find()->where(['master' => 1])->orderBy('id')->first();
-                if (!$master) {
+                if (! $master) {
                     RbacRole::initRoles();
                     $master = RbacRole::find()->where(['master' => 1])->orderBy('id')->first();
                 }

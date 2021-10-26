@@ -1,7 +1,14 @@
 <?php
 
-declare (strict_types=1);
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Model\Rbac;
 
 use App\Model\Model;
@@ -20,29 +27,31 @@ use App\Model\Model;
 class RbacRole extends Model
 {
     /**
+     * 额外显示映射的字段名称.
+     * @var array
+     */
+    public static $default_mapped = ['label' => 'name'];
+
+    /**
      * The table associated with the model.
      *
      * @var string
      */
     protected $table = 'rbac_roles';
+
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = ['name', 'description', 'master', 'system'];
+
     /**
      * The attributes that should be cast to native types.
      *
      * @var array
      */
     protected $casts = ['id' => 'integer', 'master' => 'integer', 'system' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime'];
-
-    /**
-     * 额外显示映射的字段名称
-     * @var array
-     */
-    public static $default_mapped = ['label' => 'name'];
 
     /**
      * {@inheritdoc}
@@ -63,7 +72,7 @@ class RbacRole extends Model
     /**
      * {@inheritdoc}
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'id' => 'ID',
@@ -79,38 +88,37 @@ class RbacRole extends Model
     }
 
     /**
-     * 获取所有角色
+     * 获取所有角色.
      * @param array $other_columns
      * @return array
      */
     public static function getRoles($other_columns = [])
     {
         $columns = array_merge($other_columns, ['roles.name', 'roles.description', 'roles.id', 'roles.system']);
-        $roles = self::find()
+        return self::find()
             ->alias('roles')
             ->select($columns)
             ->orderBy(['master' => SORT_DESC, 'system' => SORT_DESC])
             ->orderByRaw('convert(name using gbk) asc')
             ->get()->toArray();
-        return $roles;
     }
 
     /**
-     * 初始化系统角色【超级管理员】
+     * 初始化系统角色【超级管理员】.
      * @throws \Exception
      */
     public static function initRoles()
     {
         self::deleteAll(['master' => 0, 'name' => '超级管理员']);
         $master = self::find()->where(['master' => 1])->orderBy(['id' => SORT_ASC])->first();
-        if (!$master) {
+        if (! $master) {
             $master = new RbacRole();
         }
         $master->name = '超级管理员';
         $master->master = 1;
         $master->system = 1;
-        $master->description = "该角色的用户可以对系统作任何操作。";
-        if (!$master->save()) {
+        $master->description = '该角色的用户可以对系统作任何操作。';
+        if (! $master->save()) {
             return false;
         }
     }

@@ -5,11 +5,10 @@ declare(strict_types=1);
  * This file is part of Hyperf.
  *
  * @link     https://www.hyperf.io
- * @document https://doc.hyperf.io
+ * @document https://hyperf.wiki
  * @contact  group@hyperf.io
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
-
 namespace App\Core\Traits;
 
 use App\Core\Components\Identity;
@@ -42,7 +41,7 @@ trait HasOperators
      * @param mixed $value
      * @return $this
      */
-    public function setCreatedBy($value)
+    public function setCreatedBy($value): HasOperators
     {
         $this->{static::CREATED_BY} = $value;
 
@@ -55,7 +54,7 @@ trait HasOperators
      * @param mixed $value
      * @return $this
      */
-    public function setUpdatedBy($value)
+    public function setUpdatedBy($value): HasOperators
     {
         $this->{static::UPDATED_BY} = $value;
 
@@ -66,10 +65,10 @@ trait HasOperators
      * Get a fresh operator for the model.
      * @return string
      */
-    public function freshOperator()
+    public function freshOperator(): string
     {
         $identity = Context::get(Identity::class);
-        return $identity && !$identity->getIsGuest() ? $identity->getIdentity()->getUserName() : '' ;
+        return $identity && ! $identity->getIsGuest() ? $identity->getIdentity()->getUserName() : '';
     }
 
     /**
@@ -103,12 +102,12 @@ trait HasOperators
     {
         $operator = $this->freshOperator();
 
-        if (!is_null(static::UPDATED_BY) && !$this->isDirty(static::UPDATED_BY)) {
+        if (! is_null(static::UPDATED_BY) && ! $this->isDirty(static::UPDATED_BY)) {
             $this->setUpdatedBy($operator);
         }
 
-        if (!$this->exists && !is_null(static::CREATED_BY) &&
-            !$this->isDirty(static::CREATED_BY)) {
+        if (! $this->exists && ! is_null(static::CREATED_BY)
+            && ! $this->isDirty(static::CREATED_BY)) {
             $this->setCreatedBy($operator);
         }
     }

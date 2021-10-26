@@ -1,16 +1,22 @@
 <?php
 
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Core\Components;
-
 
 use App\Core\Helpers\StringHelper;
 use Hyperf\Utils\Traits\StaticInstance;
 
 /**
  * 摘自YII2
- * Class Security
- * @package App\Core\Components
+ * Class Security.
  */
 class Security
 {
@@ -18,17 +24,20 @@ class Security
 
     /**
      * @var int Default cost used for password hashing.
-     * Allowed value is between 4 and 31.
+     *          Allowed value is between 4 and 31.
      * @see generatePasswordHash()
      */
     public $passwordHashCost = 13;
 
+    private $_useLibreSSL;
+
+    private $_randomFile;
 
     /**
      * @param $password
      * @param null $cost
-     * @return false|string
      * @throws \Exception
+     * @return false|string
      */
     public function generatePasswordHash($password, $cost = null)
     {
@@ -46,16 +55,16 @@ class Security
     /**
      * @param $password
      * @param $hash
-     * @return bool
      * @throws \Exception
+     * @return bool
      */
     public function validatePassword($password, $hash)
     {
-        if (!is_string($password) || $password === '') {
+        if (! is_string($password) || $password === '') {
             throw new \InvalidArgumentException('Password must be a string and cannot be empty.');
         }
 
-        if (!preg_match('/^\$2[axy]\$(\d\d)\$[\.\/0-9A-Za-z]{22}/', $hash, $matches)
+        if (! preg_match('/^\$2[axy]\$(\d\d)\$[\.\/0-9A-Za-z]{22}/', $hash, $matches)
             || $matches[1] < 4
             || $matches[1] > 30
         ) {
@@ -73,12 +82,12 @@ class Security
      * The string generated matches [A-Za-z0-9_-]+ and is transparent to URL-encoding.
      *
      * @param int $length the length of the key in characters
+     * @throws Exception on failure
      * @return string the generated random key
-     * @throws Exception on failure.
      */
     public function generateRandomString($length = 32)
     {
-        if (!is_int($length)) {
+        if (! is_int($length)) {
             throw new \InvalidArgumentException('First parameter ($length) must be an integer');
         }
 
@@ -90,19 +99,16 @@ class Security
         return substr(StringHelper::base64UrlEncode($bytes), 0, $length);
     }
 
-    private $_useLibreSSL;
-    private $_randomFile;
-
     /**
      * Generates specified number of random bytes.
      * Note that output may not be ASCII.
      * @param int $length
-     * @return false|string
      * @throws \Exception
+     * @return false|string
      */
     public function generateRandomKey($length = 32)
     {
-        if (!is_int($length)) {
+        if (! is_int($length)) {
             throw new \InvalidArgumentException('First parameter ($length) must be an integer');
         }
 

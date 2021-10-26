@@ -1,7 +1,14 @@
 <?php
 
-declare (strict_types=1);
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Model;
 
 use App\Core\Components\Security;
@@ -25,14 +32,16 @@ use App\Core\Interfaces\IdentityInterface;
 class User extends Model implements IdentityInterface
 {
     const STATUS_DELETED = 0;
+
     const STATUS_ACTIVE = 10;
 
     /** @var string 密码重置默认值 */
     const RESET_PASSWORD = 'Abc123';
 
     /** @var int 密码状态 */
-    const PASS_STATUS_ACTIVE = 0;//正常
-    const PASS_STATUS_RESET = 1;//密码重置状态
+    const PASS_STATUS_ACTIVE = 0; //正常
+
+    const PASS_STATUS_RESET = 1; //密码重置状态
 
     /**
      * The table associated with the model.
@@ -40,12 +49,14 @@ class User extends Model implements IdentityInterface
      * @var string
      */
     protected $table = 'users';
+
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = ['username', 'nickname', 'password_hash', 'password_reset_token', 'email', 'status', 'pass_status', 'remark'];
+
     /**
      * The attributes that should be cast to native types.
      *
@@ -58,42 +69,22 @@ class User extends Model implements IdentityInterface
      * @var array
      */
     protected $attributes = [
-        'status' => self::STATUS_ACTIVE
+        'status' => self::STATUS_ACTIVE,
     ];
 
-    /**
-     * @return array
-     */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
-            'username' => '账号'
+            'username' => '账号',
         ];
     }
 
     /**
-     * @return array
-     */
-    protected function rules(): array
-    {
-        return [
-            [['username', 'nickname', 'email'], 'required'],
-            [['status', 'pass_status'], 'integer'],
-            [['username', 'password_hash', 'password_reset_token', 'email'], 'max:255'],
-            [['nickname', 'remark'], 'string', 'max:50'],
-            [['created_by', 'updated_by'], 'max:64'],
-            [['username'], 'unique_c'],
-            [['email'], 'unique_c'],
-            [['password_reset_token'], 'unique_c'],
-        ];
-    }
-
-    /**
-     * 注册用户
-     * @return bool
+     * 注册用户.
      * @throws \Exception
+     * @return bool
      */
-    public function signUp()
+    public function signUp(): bool
     {
         $this->setPassword(self::RESET_PASSWORD);
         $this->pass_status = self::PASS_STATUS_RESET;
@@ -102,7 +93,7 @@ class User extends Model implements IdentityInterface
 
     /**
      * Returns an ID that can uniquely identify a user identity.
-     * @return string|int an ID that uniquely identifies a user identity.
+     * @return int|string an ID that uniquely identifies a user identity
      */
     public function getId()
     {
@@ -117,9 +108,6 @@ class User extends Model implements IdentityInterface
         return $this->username;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public static function findIdentity($id)
     {
         return static::findOne(['id' => $id, 'status' => self::STATUS_ACTIVE]);
@@ -138,25 +126,25 @@ class User extends Model implements IdentityInterface
     }
 
     /**
-     * Finds user by username
+     * Finds user by username.
      *
      * @param string $username
-     * @return static|null
+     * @return null|static
      */
-    public static function findByUsername($username)
+    public static function findByUsername(string $username): ?User
     {
         return static::findOne(['username' => $username, 'status' => self::STATUS_ACTIVE]);
     }
 
     /**
-     * Finds user by password reset token
+     * Finds user by password reset token.
      *
      * @param string $token password reset token
-     * @return static|null
+     * @return null|static
      */
-    public static function findByPasswordResetToken($token)
+    public static function findByPasswordResetToken(string $token): ?User
     {
-        if (!static::isPasswordResetTokenValid($token)) {
+        if (! static::isPasswordResetTokenValid($token)) {
             return null;
         }
 
@@ -167,12 +155,11 @@ class User extends Model implements IdentityInterface
     }
 
     /**
-     * Finds out if password reset token is valid
+     * Finds out if password reset token is valid.
      *
      * @param string $token password reset token
-     * @return bool
      */
-    public static function isPasswordResetTokenValid($token)
+    public static function isPasswordResetTokenValid(string $token): bool
     {
         if (empty($token)) {
             return false;
@@ -183,32 +170,31 @@ class User extends Model implements IdentityInterface
         return $timestamp + $expire >= time();
     }
 
-
     /**
-     * Validates password
+     * Validates password.
      *
      * @param string $password password to validate
-     * @return bool if password provided is valid for current user
      * @throws \Exception
+     * @return bool if password provided is valid for current user
      */
-    public function validatePassword($password)
+    public function validatePassword(string $password): bool
     {
         return Security::instance()->validatePassword($password, $this->password_hash);
     }
 
     /**
-     * Generates password hash from password and sets it to the model
+     * Generates password hash from password and sets it to the model.
      *
      * @param string $password
      * @throws \Exception
      */
-    public function setPassword($password)
+    public function setPassword(string $password)
     {
         $this->password_hash = Security::instance()->generatePasswordHash($password);
     }
 
     /**
-     * Generates new password reset token
+     * Generates new password reset token.
      */
     public function generatePasswordResetToken()
     {
@@ -216,7 +202,7 @@ class User extends Model implements IdentityInterface
     }
 
     /**
-     * Removes password reset token
+     * Removes password reset token.
      */
     public function removePasswordResetToken()
     {
@@ -225,20 +211,33 @@ class User extends Model implements IdentityInterface
 
     /**
      * 验证token是否过期|成功则更新过期时间
-     * Validates if accessToken expired
+     * Validates if accessToken expired.
      * @param string $token
      * @param string $ip
      * @return bool
      */
-    public static function validateAccessToken($token, $ip)
+    public static function validateAccessToken(string $token, string $ip): bool
     {
-        if (!$token) {
+        if (! $token) {
             return false;
-        } else {
-            if ($bool = UsersAccessed::validateAccessToken($token, $ip)) {
-                UsersAccessed::renewAccessToken($token, $ip);
-            }
-            return $bool;
         }
+        if ($bool = UsersAccessed::validateAccessToken($token, $ip)) {
+            UsersAccessed::renewAccessToken($token, $ip);
+        }
+        return $bool;
+    }
+
+    protected function rules(): array
+    {
+        return [
+            [['username', 'nickname', 'email'], 'required'],
+            [['status', 'pass_status'], 'integer'],
+            [['username', 'password_hash', 'password_reset_token', 'email'], 'max:255'],
+            [['nickname', 'remark'], 'string', 'max:50'],
+            [['created_by', 'updated_by'], 'max:64'],
+            [['username'], 'unique_c'],
+            [['email'], 'unique_c'],
+            [['password_reset_token'], 'unique_c'],
+        ];
     }
 }

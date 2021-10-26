@@ -1,27 +1,33 @@
 <?php
 
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Core\Components;
-
 
 use App\Core\Interfaces\IdentityInterface;
 
 /**
- * Class Identity
- * @package App\Core\Components
+ * Class Identity.
  */
 class Identity
 {
-    private $_identity;
-
     public $identityClass = 'App\Model\User';
+
+    private $_identity;
 
     /**
      * @param string $token
      * @param null $type
-     * @return IdentityInterface|null
+     * @return null|IdentityInterface
      */
-    public function loginByAccessToken($token, $type = null)
+    public function loginByAccessToken(string $token, $type = null): ?IdentityInterface
     {
         /* @var $class IdentityInterface */
         $class = $this->identityClass;
@@ -37,12 +43,11 @@ class Identity
      * @param IdentityInterface $identity
      * @return bool
      */
-    public function login(IdentityInterface $identity)
+    public function login(IdentityInterface $identity): bool
     {
         $this->setIdentity($identity);
-        return !$this->getIsGuest();
+        return ! $this->getIsGuest();
     }
-
 
     /**
      * Sets the user identity object.
@@ -50,10 +55,10 @@ class Identity
      * Note that this method does not deal with session or cookie. You should usually use [[switchIdentity()]]
      * to change the identity of the current user.
      *
-     * @param IdentityInterface|null $identity the identity object associated with the currently logged user.
-     * If null, it means the current user will be a guest without any associated identity.
+     * @param null|IdentityInterface $identity the identity object associated with the currently logged user.
+     *                                         If null, it means the current user will be a guest without any associated identity.
      */
-    public function setIdentity($identity)
+    public function setIdentity(?IdentityInterface $identity)
     {
         if ($identity instanceof IdentityInterface) {
             $this->_identity = $identity;
@@ -67,17 +72,17 @@ class Identity
     /**
      * @return null|IdentityInterface
      */
-    public function getIdentity()
+    public function getIdentity(): ?IdentityInterface
     {
         return $this->_identity;
     }
 
     /**
      * Returns a value indicating whether the user is a guest (not authenticated).
-     * @return bool whether the current user is a guest.
+     * @return bool whether the current user is a guest
      * @see getIdentity()
      */
-    public function getIsGuest()
+    public function getIsGuest(): bool
     {
         return $this->getIdentity() === null;
     }

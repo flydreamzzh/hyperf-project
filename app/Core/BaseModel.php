@@ -1,22 +1,30 @@
 <?php
 
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Core;
 
+use App\Core\Components\Builder as Builder;
 use App\Core\Interfaces\ValidateModelInterface;
 use App\Core\Traits\HasOperators;
+use App\Core\Traits\IdeHelperTrait;
 use App\Core\Traits\OtherHasAttributes;
 use Hyperf\Contract\TranslatorInterface;
-use App\Core\Components\Builder as Builder;
+use Hyperf\Database\Model\Collection;
 use Hyperf\DbConnection\Model\Model;
-use App\Core\Traits\IdeHelperTrait;
 use Hyperf\Utils\ApplicationContext;
 use Hyperf\Utils\Context;
 
 /**
  * 模型基础类
- * Class BaseModel
- * @package App\base
+ * Class BaseModel.
  */
 class BaseModel extends Model
 {
@@ -46,32 +54,22 @@ class BaseModel extends Model
     /**
      * @return string
      */
-    public static function tableName()
+    public static function tableName(): string
     {
         return (new static())->getTable();
     }
 
     /**
-     * 字段对应其中文翻译zh_CN
+     * 字段对应其中文翻译zh_CN.
      * @return array
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [];
     }
 
     /**
-     * 验证规则
-     * @return array
-     */
-    protected function rules(): array
-    {
-        return [];
-    }
-
-    /**
-     * 验证场景
-     * @return array
+     * 验证场景.
      */
     public function scenarios(): array
     {
@@ -79,14 +77,14 @@ class BaseModel extends Model
     }
 
     /**
-     * 验证模型数据
+     * 验证模型数据.
      * @return bool
      */
-    public function validate()
+    public function validate(): bool
     {
         Context::set(ValidateModelInterface::class, $this);
         $this->clearErrors();
-        list($rules, $messages) = $this->getRules();
+        [$rules, $messages] = $this->getRules();
         $container = ApplicationContext::getContainer();
         $translator = $container->get(TranslatorInterface::class);
         $attributes = $translator->getLocale() == 'zh_CN' ? $this->attributeLabels() : [];
@@ -99,46 +97,11 @@ class BaseModel extends Model
     }
 
     /**
-     * @return array
-     */
-    protected function getRules()
-    {
-        $validateRules = [];
-        $validateMessages = [];
-        $rules = $this->rules();
-        foreach ($rules as $rule) {
-            list($columns, $validateType) = $rule;
-            $message = $rule['message'] ?? null;
-            $columns = is_array($columns) ? $columns : [$columns];
-            foreach ($columns as $column) {
-                if (isset($validateRules[$column])) {
-                    $validateRules[$column] .= "|{$validateType}";
-                } else {
-                    $validateRules[$column] = $validateType;
-                };
-                if ($message) {
-                    if (is_array($message)) {
-                        $types = explode('|', $validateType);
-                        foreach ($types as $index => $type) {
-                            $messageType = preg_replace('/(:).*/', '', $type);
-                            isset($message[$index]) && $validateMessages["$column.$messageType"] = (string)$message[$index];
-                        }
-                    } else {
-                        $messageType = preg_replace('/(:).*/', '', $validateType);
-                        $validateMessages["$column.$messageType"] = (string)$message;
-                    }
-                }
-            }
-        }
-        return [$validateRules, $validateMessages];
-    }
-
-    /**
      * @param string $attribute
-     * @param string $message
+     * @param mixed $message
      * @return string
      */
-    public function addError(string $attribute, string $message)
+    public function addError(string $attribute, $message): string
     {
         return $this->_errors[$attribute] = $message;
     }
@@ -146,13 +109,13 @@ class BaseModel extends Model
     /**
      * @return array
      */
-    public function getErrors()
+    public function getErrors(): array
     {
         return $this->_errors;
     }
 
     /**
-     * 获取第一个错误信息
+     * 获取第一个错误信息.
      * @return mixed
      */
     public function getFirstError()
@@ -162,7 +125,7 @@ class BaseModel extends Model
     }
 
     /**
-     * 清除错误信息
+     * 清除错误信息.
      * @param null $attribute
      */
     public function clearErrors($attribute = null)
@@ -183,21 +146,20 @@ class BaseModel extends Model
     }
 
     /**
-     * 获取主键
-     * @return string|array
+     * 获取主键.
+     * @return array|string
      */
     public function getPrimaryKey()
     {
         $keys = $this->primaryKey;
-        if (!is_array($keys)) {
+        if (! is_array($keys)) {
             return $this->getAttribute($keys) ?? null;
-        } else {
-            $values = [];
-            foreach ($keys as $name) {
-                $values[$name] = $this->getAttribute($name) ?? null;
-            }
-            return $values;
         }
+        $values = [];
+        foreach ($keys as $name) {
+            $values[$name] = $this->getAttribute($name) ?? null;
+        }
+        return $values;
     }
 
     /**
@@ -210,46 +172,29 @@ class BaseModel extends Model
     }
 
     /**
-     * 获取完整的表名
-     * @param string|null $table
+     * 获取完整的表名.
+     * @param null|string $table
      * @return string
      */
-    public static function getAbsoluteTableName($table = null)
+    public static function getAbsoluteTableName($table = null): string
     {
         if ($table) {
-            return self::getTablePrefix() .$table;
+            return self::getTablePrefix() . $table;
         }
         return self::getTablePrefix() . self::tableName();
     }
 
     /**
-     * 保存前操作
-     * @return bool
-     */
-    protected function beforeSave()
-    {
-        return true;
-    }
-
-    /**
-     * 保存后操作
-     */
-    protected function afterSave()
-    {
-
-    }
-
-    /**
-     * 验证规则再保存数据
+     * 验证规则再保存数据.
      * @param array $options
      * @return bool
      */
     public function save(array $options = []): bool
     {
-        if (!$this->validate()) {
+        if (! $this->validate()) {
             return false;
         }
-        if (!$this->beforeSave()) {
+        if (! $this->beforeSave()) {
             return false;
         }
         if ($bool = parent::save($options)) {
@@ -259,51 +204,25 @@ class BaseModel extends Model
     }
 
     /**
-     * 记录操作者
-     * @param \Hyperf\Database\Model\Builder $query
-     * @return bool
-     */
-    protected function performInsert(\Hyperf\Database\Model\Builder $query)
-    {
-        if ($this->usesOperators()) {
-            $this->updateOperators();
-        }
-        return parent::performInsert($query); // TODO: Change the autogenerated stub
-    }
-
-    /**
-     * 记录操作者
-     * @param \Hyperf\Database\Model\Builder $query
-     * @return bool
-     */
-    protected function performUpdate(\Hyperf\Database\Model\Builder $query)
-    {
-        if ($this->usesOperators()) {
-            $this->updateOperators();
-        }
-        return parent::performUpdate($query); // TODO: Change the autogenerated stub
-    }
-
-    /**
-     * 保存数据且验证数据
+     * 保存数据且验证数据.
      * @param array $options
      * @param bool $validate
      * @return bool
      */
-    public function saveAndValidate(array $options = [], $validate = true)
+    public function saveAndValidate(array $options = [], $validate = true): bool
     {
-        if ($validate && !$this->validate()) {
+        if ($validate && ! $this->validate()) {
             return false;
         }
         return parent::save($options);
     }
 
     /**
-     * 保存数据且验证数据
+     * 保存数据且验证数据.
      * @param array $options
      * @return bool
      */
-    public function saveNoValidate(array $options = [])
+    public function saveNoValidate(array $options = []): bool
     {
         return parent::save($options);
     }
@@ -311,7 +230,6 @@ class BaseModel extends Model
     /**
      * Convert the model instance to an array.
      * @param array $attributes
-     * @return array
      */
     public function toArray($attributes = []): array
     {
@@ -327,7 +245,7 @@ class BaseModel extends Model
     }
 
     /**
-     * query()别名
+     * query()别名.
      * @return Builder|\Hyperf\Database\Model\Builder
      */
     public static function find()
@@ -336,31 +254,20 @@ class BaseModel extends Model
     }
 
     /**
-     * Get a new query builder instance for the connection.
-     *
-     * @return Builder
-     */
-    protected function newBaseQueryBuilder()
-    {
-        $connection = $this->getConnection();
-
-        return new Builder($connection, $connection->getQueryGrammar(), $connection->getPostProcessor());
-    }
-
-    /**
      * 获取单条数据模型对象
      * @param $column
      * @param null $operator
      * @param null $value
      * @param string $boolean
-     * @return \Hyperf\Database\Model\Builder|\Hyperf\Database\Model\Model|object|static|null
+     * @return null|\Hyperf\Database\Model\Builder|\Hyperf\Database\Model\Model|object|static
      */
     public static function findOne($column, $operator = null, $value = null, $boolean = 'and')
     {
         if (count(func_get_args()) == 1) {
             if ($column instanceof BaseModel) {
                 return self::query()->where([static::primaryKey() => $column->getPrimaryKey()])->first();
-            } else if (!is_array($column)) {
+            }
+            if (! is_array($column)) {
                 return self::query()->where([static::primaryKey() => $column])->first();
             }
         }
@@ -373,13 +280,12 @@ class BaseModel extends Model
      * @param null $operator
      * @param null $value
      * @param string $boolean
-     * @return \Hyperf\Database\Model\Collection|static[]
+     * @return Collection|static[]
      */
     public static function findAll($column, $operator = null, $value = null, $boolean = 'and')
     {
         return self::query()->where(...func_get_args())->get();
     }
-
 
     /**
      * @param $condition
@@ -406,5 +312,100 @@ class BaseModel extends Model
         return (new static())->where($condition)->update($attributes);
     }
 
+    /**
+     * 验证规则.
+     */
+    protected function rules(): array
+    {
+        return [];
+    }
 
+    /**
+     * @return array
+     */
+    protected function getRules(): array
+    {
+        $validateRules = [];
+        $validateMessages = [];
+        $rules = $this->rules();
+        foreach ($rules as $rule) {
+            [$columns, $validateType] = $rule;
+            $message = $rule['message'] ?? null;
+            $columns = is_array($columns) ? $columns : [$columns];
+            foreach ($columns as $column) {
+                if (isset($validateRules[$column])) {
+                    $validateRules[$column] .= "|{$validateType}";
+                } else {
+                    $validateRules[$column] = $validateType;
+                }
+                if ($message) {
+                    if (is_array($message)) {
+                        $types = explode('|', $validateType);
+                        foreach ($types as $index => $type) {
+                            $messageType = preg_replace('/(:).*/', '', $type);
+                            isset($message[$index]) && $validateMessages["{$column}.{$messageType}"] = (string) $message[$index];
+                        }
+                    } else {
+                        $messageType = preg_replace('/(:).*/', '', $validateType);
+                        $validateMessages["{$column}.{$messageType}"] = (string) $message;
+                    }
+                }
+            }
+        }
+        return [$validateRules, $validateMessages];
+    }
+
+    /**
+     * 保存前操作.
+     * @return bool
+     */
+    protected function beforeSave(): bool
+    {
+        return true;
+    }
+
+    /**
+     * 保存后操作.
+     */
+    protected function afterSave()
+    {
+    }
+
+    /**
+     * 记录操作者.
+     * @param \Hyperf\Database\Model\Builder $query
+     * @return bool
+     */
+    protected function performInsert(\Hyperf\Database\Model\Builder $query)
+    {
+        if ($this->usesOperators()) {
+            $this->updateOperators();
+        }
+        return parent::performInsert($query); // TODO: Change the autogenerated stub
+    }
+
+    /**
+     * 记录操作者.
+     * @param \Hyperf\Database\Model\Builder $query
+     * @return bool
+     */
+    protected function performUpdate(\Hyperf\Database\Model\Builder $query): bool
+    {
+        if ($this->usesOperators()) {
+            $this->updateOperators();
+        }
+        return parent::performUpdate($query); // TODO: Change the autogenerated stub
+    }
+
+    /**
+     * Get a new query builder instance for the connection.
+     *
+     * @return Builder
+     */
+    protected function newBaseQueryBuilder(): Builder
+    {
+        $connection = $this->getConnection();
+
+        return new Builder($connection, $connection->getQueryGrammar(), $connection->getPostProcessor());
+    }
 }

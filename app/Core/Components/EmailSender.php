@@ -1,16 +1,22 @@
 <?php
 
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Core\Components;
 
 use App\Core\Traits\HyStaticInstance;
-use Hyperf\Utils\Coroutine;
 use PHPMailer\PHPMailer\PHPMailer;
 
 /**
  * 邮件发送
- * Class EmailSender
- * @package App\Core\Components
+ * Class EmailSender.
  */
 class EmailSender
 {
@@ -29,7 +35,7 @@ class EmailSender
     {
         $this->mailer = new PHPMailer();
         $this->mailer->CharSet = config('mailer.messageConfig.charset');
-        $this->mailer->IsSMTP();//设定使用SMTP服务
+        $this->mailer->IsSMTP(); //设定使用SMTP服务
         $this->mailer->SMTPDebug = 0;
         $this->mailer->SMTPAuth = true;
         $this->mailer->SMTPSecure = config('mailer.transport.encryption');
@@ -55,8 +61,8 @@ class EmailSender
 
     /**
      * @param $context
-     * @return $this
      * @throws \PHPMailer\PHPMailer\Exception
+     * @return $this
      */
     public function setTextBody($context)
     {
@@ -68,8 +74,8 @@ class EmailSender
 
     /**
      * @param array $addresses
-     * @return $this
      * @throws \PHPMailer\PHPMailer\Exception
+     * @return $this
      */
     public function setTo($addresses = [])
     {
@@ -83,7 +89,7 @@ class EmailSender
 
     /**
      * 同步发送
-     * 调用这个方法不会有协程异步的特性
+     * 调用这个方法不会有协程异步的特性.
      * @return mixed
      */
     public function syncSend()
@@ -97,12 +103,11 @@ class EmailSender
     }
 
     /**
-     * @return bool
      * @throws \PHPMailer\PHPMailer\Exception
+     * @return bool
      */
     public function send()
     {
-        $result = $this->mailer->Send();
-        return $result;
+        return $this->mailer->Send();
     }
 }

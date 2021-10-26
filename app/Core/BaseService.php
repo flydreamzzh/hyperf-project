@@ -1,6 +1,14 @@
 <?php
 
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Core;
 
 use App\Core\Components\Identity;
@@ -10,8 +18,7 @@ use Hyperf\Utils\Context;
 
 /**
  * BaseService
- * 服务基类
- * @package App\Core\Services
+ * 服务基类.
  */
 class BaseService
 {
@@ -19,20 +26,19 @@ class BaseService
     use ResultTrait;
 
     /**
-     * @return Interfaces\IdentityInterface|null
+     * @return null|Interfaces\IdentityInterface
      */
-    protected function getIdentity()
+    protected function getIdentity(): ?Interfaces\IdentityInterface
     {
         return Context::get(Identity::class)->getIdentity();
     }
 
     /**
-     * @return int|string|null
+     * @return null|int|string
      */
     protected function getIdentityId()
     {
         $identity = $this->getIdentity();
-        $id = $identity ? $identity->getId() : null;
-        return $id;
+        return $identity ? $identity->getId() : null;
     }
 }

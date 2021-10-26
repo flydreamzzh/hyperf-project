@@ -1,44 +1,47 @@
 <?php
 
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Core\Helpers;
-
 
 class DateHelper
 {
     /**
-     * 返回当前的毫秒时间戳
+     * 返回当前的毫秒时间戳.
      * @return float
      */
-    public static function msectime()
+    public static function msectime(): float
     {
-        list($msec, $sec) = explode(' ', microtime());
-        $msectime = (float)sprintf('%.0f', (floatval($msec) + floatval($sec)) * 1000);
-        return $msectime;
+        [$msec, $sec] = explode(' ', microtime());
+        return (float) sprintf('%.0f', (floatval($msec) + floatval($sec)) * 1000);
     }
 
     /**
      * 返回当前的周一
      * @return string
      */
-    public static function weekFirstDay()
+    public static function weekFirstDay(): string
     {
         $date = new \DateTime();
         $date->modify('this week');
-        $first_day_of_week = $date->format('Y-m-d');
-        return $first_day_of_week;
+        return $date->format('Y-m-d');
     }
 
     /**
-     * 返回当前的周日
+     * 返回当前的周日.
      * @return string
      */
-    public static function weekLastDay()
+    public static function weekLastDay(): string
     {
         $date = new \DateTime();
         $date->modify('this week +6 days');
-        $end_day_of_week = $date->format('Y-m-d');
-        return $end_day_of_week;
+        return $date->format('Y-m-d');
     }
-
 }

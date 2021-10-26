@@ -1,6 +1,14 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Model\Rbac;
 
 use App\Core\Helpers\ArrayHelper;
@@ -8,7 +16,7 @@ use App\Model\Model;
 use Hyperf\DbConnection\Db;
 
 /**
- * @property int $id 
+ * @property int $id
  * @property int $role_id 角色ID
  * @property int $permission_id 权限ID
  * @property string $created_by 创建人
@@ -24,12 +32,14 @@ class RbacRolePermission extends Model
      * @var string
      */
     protected $table = 'rbac_role_permissions';
+
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = ['role_id', 'permission_id'];
+
     /**
      * The attributes that should be cast to native types.
      *
@@ -48,14 +58,14 @@ class RbacRolePermission extends Model
             [['created_at', 'updated_at'], 'safe'],
             [['created_by', 'updated_by'], 'string', 'max' => 64],
             [['role_id', 'permission_id'], 'unique_c:,role_id&permission_id'],
-//            [['role_id'], 'exist', 'skipOnError' => true, 'targetClass' => RbacRole::className(), 'targetAttribute' => ['role_id' => 'id']],
+            //            [['role_id'], 'exist', 'skipOnError' => true, 'targetClass' => RbacRole::className(), 'targetAttribute' => ['role_id' => 'id']],
         ];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'id' => 'ID',
@@ -69,19 +79,18 @@ class RbacRolePermission extends Model
     }
 
     /**
-     * 获取某角色或角色组的权限【主键】组
+     * 获取某角色或角色组的权限【主键】组.
      * @param array|string $role_id
      * @return array
      */
     public static function getPermissionIdsByRole($role_id)
     {
         $role_permissions = self::find()->where(['role_id' => $role_id])->get()->toArray();
-        $permissionIds = ArrayHelper::getColumn($role_permissions, 'permission_id');
-        return $permissionIds;
+        return ArrayHelper::getColumn($role_permissions, 'permission_id');
     }
 
     /**
-     * 获取某角色或某角色组的权限【对象】组
+     * 获取某角色或某角色组的权限【对象】组.
      * @param array|string $role_id
      * @return RbacPermission[]
      */
@@ -89,13 +98,12 @@ class RbacRolePermission extends Model
     {
         $permissionIds = self::getPermissionIdsByRole($role_id);
         /** @var RbacPermission[] $permissions */
-        $permissions = RbacPermission::find()->where(['id' => $permissionIds])->get();
-        return $permissions;
+        return RbacPermission::find()->where(['id' => $permissionIds])->get();
     }
 
     /**
-     *  获取某角色或角色组 是否 拥有某权限
-     * @param string|array $role_id
+     *  获取某角色或角色组 是否 拥有某权限.
+     * @param array|string $role_id
      * @param string $permissionId
      * @return bool
      */
@@ -108,7 +116,7 @@ class RbacRolePermission extends Model
     }
 
     /**
-     * 为角色授予权限
+     * 为角色授予权限.
      * @param $role_id string
      * @param $permissionIds array 权限ID组
      * @return bool
@@ -124,7 +132,7 @@ class RbacRolePermission extends Model
         try {
             $delete_flag = true;
             if ($delete_ids) {
-                $delete_flag = self::deleteAll(['role_id' => $role_id, 'permission_id' => $delete_ids]) ? true : false;//清除不再拥有的权限
+                $delete_flag = self::deleteAll(['role_id' => $role_id, 'permission_id' => $delete_ids]) ? true : false; //清除不再拥有的权限
             }
             if ($delete_flag && $create_ids) {
                 $data = [];
@@ -144,5 +152,4 @@ class RbacRolePermission extends Model
             return false;
         }
     }
-
 }

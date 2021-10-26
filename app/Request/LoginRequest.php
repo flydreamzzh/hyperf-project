@@ -1,14 +1,20 @@
 <?php
 
 declare(strict_types=1);
-
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Request;
 
 use Hyperf\Validation\Request\FormRequest;
 
 /**
- * Class LoginRequest
- * @package App\Request
+ * Class LoginRequest.
  */
 class LoginRequest extends FormRequest
 {
@@ -27,12 +33,12 @@ class LoginRequest extends FormRequest
     {
         return [
             'username' => 'required',
-            'password' => 'required'
+            'password' => 'required',
         ];
     }
 
     /**
-     * 获取已定义验证规则的错误消息
+     * 获取已定义验证规则的错误消息.
      */
     public function messages(): array
     {

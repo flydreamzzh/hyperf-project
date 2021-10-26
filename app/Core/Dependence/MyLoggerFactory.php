@@ -1,13 +1,20 @@
 <?php
 
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Core\Dependence;
 
-
+use App\Core\Dependence\MyLogger as Logger;
 use Hyperf\Logger\Exception\InvalidConfigException;
 use Hyperf\Logger\LoggerFactory;
 use Psr\Log\LoggerInterface;
-use App\Core\Dependence\MyLogger as Logger;
 
 class MyLoggerFactory extends LoggerFactory
 {

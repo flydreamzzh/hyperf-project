@@ -1,5 +1,14 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Core\Handler;
 
 use Monolog\Handler\StreamHandler;
@@ -8,8 +17,7 @@ use Monolog\Logger;
 /**
  * LogFileHandler
  * 日志处理，存储文件
- * 将info、warning、notic等类型存储一个文件，debug类型存储一个文件，error类型存储一个文件
- * @package App\Core\Handler
+ * 将info、warning、notic等类型存储一个文件，debug类型存储一个文件，error类型存储一个文件.
  */
 class LogFileHandler extends StreamHandler
 {
@@ -40,21 +48,20 @@ class LogFileHandler extends StreamHandler
         parent::__construct($stream, $level, $bubble, $filePermission, $useLocking);
     }
 
-
     /**
      * handle
      * 改写父类方法，增加渠道类型判断
-     * Time：下午7:16
+     * Time：下午7:16.
      * @param array $record
      * @return bool
      */
-    public function handle(array $record)
+    public function handle(array $record): bool
     {
         if ($record['channel'] != $this->channel) {
             return false;
         }
 
-        if (!$this->isHandling($record)) {
+        if (! $this->isHandling($record)) {
             return false;
         }
         $record = $this->processRecord($record);
@@ -63,32 +70,32 @@ class LogFileHandler extends StreamHandler
 
         $this->write($record);
 
-        return false === $this->bubble;
+        return $this->bubble === false;
     }
 
     /**
      * isHandling
      * 重写该方法，作用改变日志的存储文件的方式。
-     * 将debug,error，单独存储，其它的按着原来规则
+     * 将debug,error，单独存储，其它的按着原来规则.
      * @param array $record
      * @return bool
      */
-    public function isHandling(array $record)
+    public function isHandling(array $record): bool
     {
         if ($record['level'] == Logger::DEBUG) {
             return $record['level'] == $this->level;
-        } else if (in_array($record['level'], [Logger::ERROR, Logger::CRITICAL, Logger::ALERT, Logger::EMERGENCY])) {
-              return Logger::ERROR <= $this->level && Logger::EMERGENCY >= $this->level;
-        } else {
-            return Logger::INFO <= $this->level && Logger::WARNING >= $this->level;
         }
+        if (in_array($record['level'], [Logger::ERROR, Logger::CRITICAL, Logger::ALERT, Logger::EMERGENCY])) {
+            return Logger::ERROR <= $this->level && Logger::EMERGENCY >= $this->level;
+        }
+        return Logger::INFO <= $this->level && Logger::WARNING >= $this->level;
     }
 
     /**
-     * 重写日志文件路径
+     * 重写日志文件路径.
      * @param array $record
      */
-    protected function write(array $record)
+    protected function write(array $record): void
     {
         $path = str_replace('[datetime]', date('Y-m-d'), $this->formatUrl);
         if ($path != $this->url) {
@@ -97,7 +104,7 @@ class LogFileHandler extends StreamHandler
             }
             $this->url = $path;
         } else {
-            if (is_resource($this->stream) && !file_exists($this->url)) {
+            if (is_resource($this->stream) && ! file_exists($this->url)) {
                 $this->close();
             }
         }

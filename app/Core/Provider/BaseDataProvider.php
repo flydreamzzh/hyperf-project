@@ -1,12 +1,15 @@
 <?php
+
+declare(strict_types=1);
 /**
- * @link http://www.yiiframework.com/
- * @copyright Copyright (c) 2008 Yii Software LLC
- * @license http://www.yiiframework.com/license/
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
-
 namespace App\Core\Provider;
-
 
 use App\Core\Components\Pagination;
 use App\Core\Interfaces\DataProviderInterface;
@@ -20,35 +23,37 @@ use App\Core\Interfaces\DataProviderInterface;
  * @property array $keys The list of key values corresponding to [[models]]. Each data model in [[models]] is
  * uniquely identified by the corresponding key value in this array.
  * @property array $models The list of data models in the current page.
- * @property Pagination|false $pagination The pagination object. If this is false, it means the pagination is
+ * @property false|Pagination $pagination The pagination object. If this is false, it means the pagination is
  * disabled. Note that the type of this property differs in getter and setter. See [[getPagination()]] and
  * [[setPagination()]] for details.
  * the type of this property differs in getter and setter. See [[getSort()]] and [[setSort()]] for details.
  * @property int $totalCount Total number of possible data models.
  *
- * @author Qiang Xue <qiang.xue@gmail.com>
  * @since 2.0
  */
 abstract class BaseDataProvider implements DataProviderInterface
 {
     /**
-     * @var int Number of data providers on the current page. Used to generate unique IDs.
-     */
-    private static $counter = 0;
-    /**
      * @var string an ID that uniquely identifies the data provider among all data providers.
-     * Generated automatically the following way in case it is not set:
+     *             Generated automatically the following way in case it is not set:
      *
      * - First data provider ID is empty.
      * - Second and all subsequent data provider IDs are: "dp-1", "dp-2", etc.
      */
     public $id;
 
-    private $_pagination;
-    private $_keys;
-    private $_models;
-    private $_totalCount;
+    /**
+     * @var int Number of data providers on the current page. Used to generate unique IDs.
+     */
+    private static $counter = 0;
 
+    private $_pagination;
+
+    private $_keys;
+
+    private $_models;
+
+    private $_totalCount;
 
     /**
      * {@inheritdoc}
@@ -59,28 +64,9 @@ abstract class BaseDataProvider implements DataProviderInterface
             if (self::$counter > 0) {
                 $this->id = 'dp-' . self::$counter;
             }
-            self::$counter++;
+            ++self::$counter;
         }
     }
-
-    /**
-     * Prepares the data models that will be made available in the current page.
-     * @return array the available data models
-     */
-    abstract protected function prepareModels();
-
-    /**
-     * Prepares the keys associated with the currently available data models.
-     * @param array $models the available data models
-     * @return array the keys
-     */
-    abstract protected function prepareKeys($models);
-
-    /**
-     * Returns a value indicating the total number of data models in this data provider.
-     * @return int total number of data models in this data provider.
-     */
-    abstract protected function prepareTotalCount();
 
     /**
      * Prepares the data models and keys.
@@ -90,7 +76,7 @@ abstract class BaseDataProvider implements DataProviderInterface
      *
      * This method will be implicitly called by [[getModels()]] and [[getKeys()]] if it has not been called before.
      *
-     * @param bool $forcePrepare whether to force data preparation even if it has been done before.
+     * @param bool $forcePrepare whether to force data preparation even if it has been done before
      */
     public function prepare($forcePrepare = false)
     {
@@ -104,7 +90,7 @@ abstract class BaseDataProvider implements DataProviderInterface
 
     /**
      * Returns the data models in the current page.
-     * @return array the list of data models in the current page.
+     * @return array the list of data models in the current page
      */
     public function getModels()
     {
@@ -125,7 +111,7 @@ abstract class BaseDataProvider implements DataProviderInterface
     /**
      * Returns the key values associated with the data models.
      * @return array the list of key values corresponding to [[models]]. Each data model in [[models]]
-     * is uniquely identified by the corresponding key value in this array.
+     *               is uniquely identified by the corresponding key value in this array.
      */
     public function getKeys()
     {
@@ -136,7 +122,7 @@ abstract class BaseDataProvider implements DataProviderInterface
 
     /**
      * Sets the key values associated with the data models.
-     * @param array $keys the list of key values corresponding to [[models]].
+     * @param array $keys the list of key values corresponding to [[models]]
      */
     public function setKeys($keys)
     {
@@ -145,7 +131,7 @@ abstract class BaseDataProvider implements DataProviderInterface
 
     /**
      * Returns the number of data models in the current page.
-     * @return int the number of data models in the current page.
+     * @return int the number of data models in the current page
      */
     public function getCount()
     {
@@ -156,13 +142,14 @@ abstract class BaseDataProvider implements DataProviderInterface
      * Returns the total number of data models.
      * When [[pagination]] is false, this returns the same value as [[count]].
      * Otherwise, it will call [[prepareTotalCount()]] to get the count.
-     * @return int total number of possible data models.
+     * @return int total number of possible data models
      */
     public function getTotalCount()
     {
         if ($this->getPagination() === false) {
             return $this->getCount();
-        } elseif ($this->_totalCount === null) {
+        }
+        if ($this->_totalCount === null) {
             $this->_totalCount = $this->prepareTotalCount();
         }
 
@@ -171,7 +158,7 @@ abstract class BaseDataProvider implements DataProviderInterface
 
     /**
      * Sets the total number of data models.
-     * @param int $value the total number of data models.
+     * @param int $value the total number of data models
      */
     public function setTotalCount($value)
     {
@@ -182,7 +169,7 @@ abstract class BaseDataProvider implements DataProviderInterface
      * Returns the pagination object used by this data provider.
      * Note that you should call [[prepare()]] or [[getModels()]] first to get correct values
      * of [[Pagination::totalCount]] and [[Pagination::pageCount]].
-     * @return Pagination|false the pagination object. If this is false, it means the pagination is disabled.
+     * @return false|Pagination the pagination object. If this is false, it means the pagination is disabled.
      */
     public function getPagination()
     {
@@ -195,8 +182,8 @@ abstract class BaseDataProvider implements DataProviderInterface
 
     /**
      * Sets the pagination for this data provider.
-     * @param array|Pagination|bool $value the pagination to be used by this data provider.
-     * This can be one of the following:
+     * @param array|bool|Pagination $value the pagination to be used by this data provider.
+     *                                     This can be one of the following:
      *
      * - a configuration array for creating the pagination object. The "class" element defaults
      *   to 'yii\data\Pagination'
@@ -228,4 +215,23 @@ abstract class BaseDataProvider implements DataProviderInterface
         $this->_models = null;
         $this->_keys = null;
     }
+
+    /**
+     * Prepares the data models that will be made available in the current page.
+     * @return array the available data models
+     */
+    abstract protected function prepareModels();
+
+    /**
+     * Prepares the keys associated with the currently available data models.
+     * @param array $models the available data models
+     * @return array the keys
+     */
+    abstract protected function prepareKeys($models);
+
+    /**
+     * Returns a value indicating the total number of data models in this data provider.
+     * @return int total number of data models in this data provider
+     */
+    abstract protected function prepareTotalCount();
 }

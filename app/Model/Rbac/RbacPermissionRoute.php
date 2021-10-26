@@ -1,11 +1,20 @@
 <?php
 
-declare (strict_types=1);
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Model\Rbac;
 
 use App\Model\Model;
+
 /**
- * @property int $id 
+ * @property int $id
  * @property string $route 路由
  * @property int $permission_id 权限ID
  * @property int $system 是否系统，1是
@@ -23,12 +32,14 @@ class RbacPermissionRoute extends Model
      * @var string
      */
     protected $table = 'rbac_permission_routes';
+
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = ['route', 'permission_id', 'system', 'home_route'];
+
     /**
      * The attributes that should be cast to native types.
      *
@@ -46,14 +57,14 @@ class RbacPermissionRoute extends Model
             [['permission_id'], 'integer'],
             [['route'], 'string', 'max' => 255],
             [['route'], 'unique_c'],
-//            [['permission_id'], 'exist', 'skipOnError' => true, 'targetClass' => RbacPermission::className(), 'targetAttribute' => ['permission_id' => 'id']],
+            //            [['permission_id'], 'exist', 'skipOnError' => true, 'targetClass' => RbacPermission::className(), 'targetAttribute' => ['permission_id' => 'id']],
         ];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'id' => 'ID',
@@ -63,7 +74,7 @@ class RbacPermissionRoute extends Model
     }
 
     /**
-     * 根据路由查找权限路由
+     * 根据路由查找权限路由.
      * @param $route
      * @return RbacPermissionRoute|static
      */

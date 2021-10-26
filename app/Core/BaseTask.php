@@ -1,14 +1,21 @@
 <?php
 
-
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace App\Core;
 
-
 use App\Core\Components\Log;
+
 /**
  * 定时任务基础类，加入日志记录
- * Class BaseTask
- * @package App\Core
+ * Class BaseTask.
  */
 abstract class BaseTask
 {
@@ -24,7 +31,7 @@ abstract class BaseTask
             Log::get('command')->info($message);
         } catch (\Throwable $exception) {
             $prefix = $this->getLogPrefix();
-            $message = sprintf('%s[%s] in %s',$exception->getMessage(), $exception->getFile(), $exception->getLine());
+            $message = sprintf('%s[%s] in %s', $exception->getMessage(), $exception->getFile(), $exception->getLine());
             $message = implode(' | ', [$prefix, $message]);
             Log::get('command')->error($message);
             Log::stdLog()->error($message . PHP_EOL . $exception->getTraceAsString());
@@ -40,9 +47,8 @@ abstract class BaseTask
     /**
      * @return string
      */
-    protected function getLogPrefix()
+    protected function getLogPrefix(): string
     {
-        $name = static::class;
-        return $name;
+        return static::class;
     }
 }
